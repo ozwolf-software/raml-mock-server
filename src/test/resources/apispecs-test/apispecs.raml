@@ -1,0 +1,25 @@
+#%RAML 0.8
+title: Test API
+version: 1.0.0
+protocols: [ HTTP ]
+baseUri: http://localhost:5000/
+
+/hello/{name}:
+  displayName: Hello
+  uriParameters:
+    name:
+      displayName: Person Name
+      type: string
+      required: true
+      example: John
+  get:
+    description: retrieve a greeting for the person
+    responses:
+      200:
+        description: greeting found for person
+        body:
+          application/json:
+            schema: !include schemas/hello-greeting-response.json
+            example: !include examples/hello-greeting-response.json
+          text/plain:
+            example: Hello John!
