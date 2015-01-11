@@ -1,6 +1,6 @@
-package net.ozwolf.mockserver.raml.provider;
+package net.ozwolf.mockserver.raml.specification;
 
-import net.ozwolf.mockserver.raml.RamlProvider;
+import net.ozwolf.mockserver.raml.RamlSpecification;
 import org.apache.commons.io.FileUtils;
 import org.raml.model.Raml;
 import org.raml.parser.loader.FileResourceLoader;
@@ -10,15 +10,16 @@ import org.raml.parser.visitor.RamlDocumentBuilder;
 import java.io.File;
 import java.io.IOException;
 
-public class FilePathProvider implements RamlProvider {
+public class FilePathSpecification extends RamlSpecification {
     private final String filePath;
 
-    public FilePathProvider(String filePath) {
+    public FilePathSpecification(String name, String filePath) {
+        super(name);
         this.filePath = filePath;
     }
 
     @Override
-    public Raml getRaml() {
+    protected Raml getRaml() {
         try {
             File file = new File(filePath);
             if (!file.exists())

@@ -55,6 +55,11 @@
             <artifactId>zip4j</artifactId>
             <version>${zip4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.9</version>
+        </dependency>
 
         <!-- Testing Library Versions -->
         <dependency>

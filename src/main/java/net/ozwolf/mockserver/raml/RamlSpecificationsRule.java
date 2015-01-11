@@ -4,14 +4,14 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Vector;
 
 public class RamlSpecificationsRule implements TestRule {
-    private final Map<String, RamlSpecification> specifications;
+    private final List<RamlSpecification> specifications;
 
     public RamlSpecificationsRule() {
-        this.specifications = new ConcurrentHashMap<>();
+        this.specifications = new Vector<>();
     }
 
     @Override
@@ -19,22 +19,29 @@ public class RamlSpecificationsRule implements TestRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                specifications.entrySet().stream().forEach(e -> e.getValue().initialize());
+                specifications.stream().forEach(RamlSpecification::initialize);
                 base.evaluate();
-                specifications.entrySet().stream().forEach(e -> e.getValue().reset());
             }
         };
     }
 
-    public RamlSpecificationsRule withSpecification(String name, RamlProvider provider) {
-        this.specifications.put(name, new RamlSpecification(provider));
+    public RamlSpecificationsRule withSpecification(RamlSpecification specification) {
+        if (this.specifications.stream().filter(s -> s.getName().equals(specification.getName())).findFirst().isPresent())
+            throw new IllegalArgumentException(String.format("A specification for [ %s ] has already been provided", specification.getName()));
+
+        this.specifications.add(specification);
+        return this;
+    }
+
+    public RamlSpecificationsRule withSpecifications(RamlSpecification... specifications) {
+        this.specifications.stream().forEach(this::withSpecifications);
         return this;
     }
 
     public RamlSpecification get(String specificationName) {
-        if (!this.specifications.containsKey(specificationName))
-            throw new IllegalArgumentException(String.format("No specification defined for [ %s ]", specificationName));
-
-        return this.specifications.get(specificationName);
+        return this.specifications.stream()
+                .filter(s -> s.getName().equals(specificationName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("No specification exists for [ %s ]", specificationName)));
     }
 }

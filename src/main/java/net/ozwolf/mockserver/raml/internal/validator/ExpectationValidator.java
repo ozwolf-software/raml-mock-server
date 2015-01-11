@@ -9,6 +9,7 @@ import org.raml.model.Raml;
 import org.raml.model.Resource;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,6 +37,12 @@ public class ExpectationValidator {
 
         if (!action.isPresent())
             return of(error.withError(String.format("Resource [ %s ] does not accept a method call of [ %s ]", resource.get().getUri(), expectation.getHttpRequest().getMethod())));
+
+        List<String> requestErrors = new RequestValidator(action.get(), expectation.getHttpRequest()).validate();
+        List<String> responseErrors = new ResponseValidator(action.get(), expectation.getHttpResponse(false)).validate();
+
+        requestErrors.stream().forEach(error::withError);
+        responseErrors.stream().forEach(error::withError);
 
         return error.isInError() ? of(error) : empty();
     }

@@ -1,20 +1,21 @@
-package net.ozwolf.mockserver.raml.provider;
+package net.ozwolf.mockserver.raml.specification;
 
-import net.ozwolf.mockserver.raml.RamlProvider;
+import net.ozwolf.mockserver.raml.RamlSpecification;
 import org.raml.model.Raml;
 import org.raml.parser.visitor.RamlDocumentBuilder;
 
 import java.io.InputStream;
 
-public class ClassPathProvider implements RamlProvider {
+public class ClassPathSpecification extends RamlSpecification {
     private final String resource;
 
-    public ClassPathProvider(String resource) {
+    public ClassPathSpecification(String name, String resource) {
+        super(name);
         this.resource = resource;
     }
 
     @Override
-    public Raml getRaml() {
+    protected Raml getRaml() {
         InputStream stream = getClass().getClassLoader().getResourceAsStream(resource);
         if (stream == null)
             throw new IllegalStateException(String.format("[ %s ] resource does not exist", resource));
