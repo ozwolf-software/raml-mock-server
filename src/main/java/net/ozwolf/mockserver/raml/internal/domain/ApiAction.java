@@ -71,24 +71,23 @@ public class ApiAction {
         return action.hasBody();
     }
 
-    public Optional<ApiBody> getBody(MediaType mediaType) {
-        if (action.getBody() == null)
-            return Optional.empty();
+    public Optional<ApiBody> getRequestBody(MediaType mediaType) {
+        if (action.getBody() == null) return Optional.empty();
 
         return getBodyIn(action.getBody(), mediaType);
     }
 
-    public String getRequestContentTypes() {
-        return StringUtils.join(action.getBody().keySet(), ", ");
+    public Optional<ApiBody> getResponseBody(Integer statusCode, MediaType contentType) {
+        if (!action.getResponses().containsKey(String.valueOf(statusCode)))
+            return Optional.empty();
+
+        Response response = action.getResponses().get(String.valueOf(statusCode));
+
+        return getBodyIn(response.getBody(), contentType);
     }
 
-    public Optional<ApiBody> getResponseBodyFor(Integer responseCode, MediaType mediaType) {
-        return action.getResponses().entrySet().stream()
-                .filter(e -> responseCode.equals(Integer.valueOf(e.getKey())))
-                .map(e -> getBodyIn(e.getValue().getBody(), mediaType))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
+    public String getRequestContentTypes() {
+        return StringUtils.join(action.getBody().keySet(), ", ");
     }
 
     public String getSecuritySchemeNames() {

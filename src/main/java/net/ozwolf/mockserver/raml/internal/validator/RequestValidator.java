@@ -2,22 +2,16 @@ package net.ozwolf.mockserver.raml.internal.validator;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
 import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
-import net.ozwolf.mockserver.raml.internal.validator.body.BodyValidator;
+import net.ozwolf.mockserver.raml.internal.validator.body.RequestBodyValidator;
 import net.ozwolf.mockserver.raml.internal.validator.parameters.HeaderParametersValidator;
 import net.ozwolf.mockserver.raml.internal.validator.parameters.QueryParametersValidator;
 import net.ozwolf.mockserver.raml.internal.validator.parameters.UriParametersValidator;
 import net.ozwolf.mockserver.raml.internal.validator.security.SecurityValidator;
-import org.mockserver.model.HttpRequest;
-import org.raml.model.Action;
-import org.raml.model.SecurityScheme;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class RequestValidator {
-
-
     private final ApiAction action;
     private final ApiRequest request;
 
@@ -34,7 +28,7 @@ public class RequestValidator {
         errors.addAll(new HeaderParametersValidator(request, action).validate());
         errors.addAll(new UriParametersValidator(request, action).validate());
         errors.addAll(new QueryParametersValidator(request, action).validate());
-        errors.addAll(new BodyValidator("Request", request, action).validate());
+        errors.addAll(new RequestBodyValidator(request, action).validate());
 
         return errors;
     }

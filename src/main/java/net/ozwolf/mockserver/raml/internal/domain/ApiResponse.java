@@ -5,6 +5,7 @@ import org.mockserver.model.HttpResponse;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.util.Optional;
 
 public class ApiResponse {
     private final HttpResponse response;
@@ -28,5 +29,12 @@ public class ApiResponse {
 
     public Integer getStatusCode() {
         return response.getStatusCode();
+    }
+
+    public Optional<String> getBody() {
+        if (response.getBody() == null)
+            return Optional.empty();
+
+        return Optional.of(response.getBodyAsString());
     }
 }

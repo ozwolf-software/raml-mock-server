@@ -25,9 +25,9 @@ public class JsonContentValidator {
             ProcessingReport report = JsonSchemaFactory.byDefault().getJsonSchema(schemaNode).validate(dataNode);
 
             if (!report.isSuccess())
-                report.iterator().forEachRemaining(m -> errors.add(String.format("%s Content: %s", bodyType, m.getMessage())));
+                report.iterator().forEachRemaining(m -> errors.add(String.format("%s: %s", bodyType, m.getMessage())));
         } catch (Exception e) {
-            errors.add(String.format("%s Content: Unexpected error of [ %s ] while validating JSON content", bodyType, e.getMessage()));
+            errors.add(String.format("%s: Unexpected error of [ %s ] while validating JSON content", bodyType, e.getMessage()));
         }
         return errors;
     }

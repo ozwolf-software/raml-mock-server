@@ -1,10 +1,13 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
 import org.apache.commons.lang.StringUtils;
+import org.mockserver.model.Body;
 import org.mockserver.model.Header;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.Parameter;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,8 +48,19 @@ public class ApiRequest {
                 .findFirst();
     }
 
-    public String getBodyAsString() {
-        return request.getBodyAsString();
+    public Optional<String> getBody() {
+        if (request.getBody() == null) return Optional.empty();
+        return Optional.of(request.getBodyAsString());
+    }
+
+    public MediaType getContentType() {
+        return MediaType.valueOf(
+                getHeader(HttpHeaders.CONTENT_TYPE)
+                        .orElse(new Header(HttpHeaders.CONTENT_TYPE, MediaType.WILDCARD))
+                        .getValues().stream()
+                        .findFirst()
+                        .get()
+        );
     }
 
     private List<String> getUriValues() {

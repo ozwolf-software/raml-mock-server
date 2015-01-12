@@ -1,14 +1,11 @@
 package net.ozwolf.mockserver.raml.internal.validator;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiBody;
 import net.ozwolf.mockserver.raml.internal.domain.ApiResponse;
-import org.raml.model.MimeType;
+import net.ozwolf.mockserver.raml.internal.validator.body.ResponseBodyValidator;
 
-import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class ResponseValidator {
     private final ApiAction action;
@@ -22,14 +19,7 @@ public class ResponseValidator {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        Optional<ApiBody> responseSpecification = action.getResponseBodyFor(response.getStatusCode(), response.getContentType());
-
-        if (!responseSpecification.isPresent()) {
-            errors.add(String.format("Response: No response type of [ %s ] for status code [ %d ].", response.getContentType(), response.getStatusCode()));
-            return errors;
-        }
-
-
+        errors.addAll(new ResponseBodyValidator(response, action).validate());
 
         return errors;
     }
