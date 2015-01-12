@@ -8,6 +8,12 @@ A testing library that allows the validation of `MockServer` expectations agains
 
 While it is possible for someone to generate a mock server, it is also valuable to validate your own interactions against the other service's RAML API specification.
 
+# Limitations
+
+## Security
+
+Currently, the validation process will only validate security specifications that use the `AUTHORIZATION` HTTP header.  Further security enhancements will be added later.
+
 ## Example Usage
 
 ```java
@@ -17,9 +23,11 @@ public class OtherServiceIntegrationTest {
     
     @ClassRule
     public final static RamlSpecificationsRule SPECIFICATIONS = new RamlSpecificationsRule()
-            .withSpecification("my-service", new ClassPathRamlSpecification("apispecs/apispecs.raml"))
-            .withSpecification("other-service", new FilePathRamlSpecification("target/specifications/other-service/apispecs.raml"))
-            .withSpecification("remote-service", new RemoteRamlSpecification("http://remote.site.com/apispecs.zip", new ZipArchiveRemoteResourceHandler("target/specifications/remote-service", "apispecs.raml")));
+            .withSpecification(new ClassPathSpecification("my-service", "apispecs/apispecs.raml")
+            .withSpecifications(
+                new FilePathSpecification("other-service", new FilePathSpecification("target/specifications/other-service/apispecs.raml"),
+                new RemoteSpecification("remote-service", "http://remote.site.com/apispecs.html?service=remote", new ZipArchiveRemoteResourceHandler("target/specifications/remote-service", "apispecs.raml"))
+            );
     
     @Test
     public void shouldInteractCorrectlyWithOtherService() {

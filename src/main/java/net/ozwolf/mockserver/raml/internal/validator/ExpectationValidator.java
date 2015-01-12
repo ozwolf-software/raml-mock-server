@@ -2,9 +2,11 @@ package net.ozwolf.mockserver.raml.internal.validator;
 
 import com.sun.jersey.api.uri.UriTemplate;
 import net.ozwolf.mockserver.raml.ExpectationError;
+import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
+import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
+import net.ozwolf.mockserver.raml.internal.domain.ApiResponse;
 import org.mockserver.mock.Expectation;
 import org.raml.model.Action;
-import org.raml.model.ActionType;
 import org.raml.model.Raml;
 import org.raml.model.Resource;
 
@@ -38,8 +40,12 @@ public class ExpectationValidator {
         if (!action.isPresent())
             return of(error.withError(String.format("Resource [ %s ] does not accept a method call of [ %s ]", resource.get().getUri(), expectation.getHttpRequest().getMethod())));
 
-        List<String> requestErrors = new RequestValidator(action.get(), expectation.getHttpRequest()).validate();
-        List<String> responseErrors = new ResponseValidator(action.get(), expectation.getHttpResponse(false)).validate();
+        ApiAction apiAction = new ApiAction(raml, action.get());
+        ApiRequest apiRequest = new ApiRequest(expectation.getHttpRequest());
+        ApiResponse apiResponse = new ApiResponse(expectation.getHttpResponse(false));
+
+        List<String> requestErrors = new RequestValidator(apiAction, apiRequest).validate();
+        List<String> responseErrors = new ResponseValidator(apiAction, apiResponse).validate();
 
         requestErrors.stream().forEach(error::withError);
         responseErrors.stream().forEach(error::withError);

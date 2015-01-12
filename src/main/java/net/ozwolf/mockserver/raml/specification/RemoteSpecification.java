@@ -4,10 +4,14 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import net.ozwolf.mockserver.raml.RamlSpecification;
 import net.ozwolf.mockserver.raml.RemoteResourceHandler;
-import net.ozwolf.mockserver.raml.provider.FilePathProvider;
+import org.apache.commons.io.FileUtils;
 import org.raml.model.Raml;
+import org.raml.parser.loader.FileResourceLoader;
+import org.raml.parser.loader.ResourceLoader;
+import org.raml.parser.visitor.RamlDocumentBuilder;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 public class RemoteSpecification extends RamlSpecification {
@@ -24,8 +28,14 @@ public class RemoteSpecification extends RamlSpecification {
 
     @Override
     protected Raml getRaml() {
-        File file = client.resource(resource).get(File.class);
-        File specificationFile = handler.handle(file);
-        return new FilePathProvider(specificationFile.getPath()).getRaml();
+        try {
+            File file = client.resource(resource).get(File.class);
+            File specificationFile = handler.handle(file);
+
+            ResourceLoader loader = new FileResourceLoader(specificationFile.getParent());
+            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(specificationFile), specificationFile.getParent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
