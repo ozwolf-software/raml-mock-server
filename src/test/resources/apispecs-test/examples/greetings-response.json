@@ -1,0 +1,7 @@
+{
+    "name": "John",
+    "greetings": [
+        "Hello {name}!",
+        "Why hello there {name}"
+    ]
+}

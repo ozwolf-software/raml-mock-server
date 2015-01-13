@@ -1,31 +1,26 @@
 package net.ozwolf.mockserver.raml;
 
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import org.apache.commons.lang.StringUtils;
-import org.mockserver.mock.Expectation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ExpectationError {
-    private final Expectation expectation;
-    private final List<String> errors;
+    private final ApiExpectation expectation;
+    private final ValidationErrors errors;
 
-    public ExpectationError(Expectation expectation) {
+    public ExpectationError(ApiExpectation expectation, ValidationErrors errors) {
         this.expectation = expectation;
-        this.errors = new ArrayList<>();
+        this.errors = errors;
     }
 
-    public ExpectationError withError(String error){
-        this.errors.add(error);
-        return this;
-    }
-
-    public boolean isInError() {
-        return !this.errors.isEmpty();
+    public List<String> getMessages() {
+        return errors.getMessages();
     }
 
     @Override
     public String toString() {
-        return String.format("%s %s: [ %s ]", expectation.getHttpRequest().getMethod(), expectation.getHttpRequest().getPath(), StringUtils.join(this.errors, " ] [ "));
+        return String.format("%s %s: [ %s ]", expectation.getMethod(), expectation.getUri(), StringUtils.join(this.errors.getMessages(), " ] [ "));
     }
 }

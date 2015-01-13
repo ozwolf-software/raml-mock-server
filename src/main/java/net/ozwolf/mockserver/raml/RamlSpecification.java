@@ -1,5 +1,7 @@
 package net.ozwolf.mockserver.raml;
 
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.ApiSpecification;
 import net.ozwolf.mockserver.raml.internal.validator.ExpectationValidator;
 import org.mockserver.client.server.MockServerClient;
 import org.raml.model.Raml;
@@ -33,9 +35,13 @@ public abstract class RamlSpecification {
         Raml raml = this.raml.orElseThrow(() -> new IllegalStateException(String.format("[ %s ] specification has not been initialized", name)));
         List<ExpectationError> errors = Arrays.asList(client.retrieveAsExpectations(null))
                 .stream()
-                .map(e -> new ExpectationValidator(e, raml).validate())
-                .filter(o -> o.isPresent())
-                .map(o -> o.get())
+                .map(e -> {
+                    ApiSpecification specification = new ApiSpecification(raml);
+                    ApiExpectation expectation = new ApiExpectation(specification, e);
+                    return new ExpectationValidator(expectation).validate();
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(toList());
 
         assertTrue(makeErrorMessageFrom(errors), errors.isEmpty());

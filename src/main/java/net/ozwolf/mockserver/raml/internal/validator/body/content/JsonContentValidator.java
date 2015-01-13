@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 
 public class JsonContentValidator {
     private final String bodyType;
@@ -15,8 +13,8 @@ public class JsonContentValidator {
         this.bodyType = bodyType;
     }
 
-    public List<String> validate(String schema, String requestBody) {
-        List<String> errors = new ArrayList<>();
+    public ValidationErrors validate(String schema, String requestBody) {
+        ValidationErrors errors = new ValidationErrors();
 
         try {
             JsonNode schemaNode = JsonLoader.fromString(schema);
@@ -25,9 +23,9 @@ public class JsonContentValidator {
             ProcessingReport report = JsonSchemaFactory.byDefault().getJsonSchema(schemaNode).validate(dataNode);
 
             if (!report.isSuccess())
-                report.iterator().forEachRemaining(m -> errors.add(String.format("%s: %s", bodyType, m.getMessage())));
+                report.iterator().forEachRemaining(m -> errors.addMessage("%s: %s", bodyType, m.getMessage()));
         } catch (Exception e) {
-            errors.add(String.format("%s: Unexpected error of [ %s ] while validating JSON content", bodyType, e.getMessage()));
+            errors.addMessage("%s: Unexpected error of [ %s ] while validating JSON content", bodyType, e.getMessage());
         }
         return errors;
     }

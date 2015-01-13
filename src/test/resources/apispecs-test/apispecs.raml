@@ -4,22 +4,112 @@ version: 1.0.0
 protocols: [ HTTP ]
 baseUri: http://localhost:5000/
 
+securitySchemes:
+  - basic:
+      description: basic HTTP authentication
+      type: basic
+      describedBy:
+        headers:
+          Authorization:
+            description: Basic authentication token
+            type: string
+            pattern: Basic (.+)
+            example: Basic d3hwMDAxQGFzaXM6dGVzdGluZw==
+  - my-token:
+      description: basic custom token
+      type: Custom Token
+      describedBy:
+        headers:
+          Authorization:
+            description: my custom token
+            type: string
+            pattern: my-token (.+)
+            example: my-token akasdbascbakasdh12j34bhbasdmbnasmb14gh12kh341khadbadb
+        queryParameters:
+          my-token:
+            description: my custom token
+            type: string
+            example: akasdbascbakasdh12j34bhbasdmbnasmb14gh12kh341khadbadb
+
 /hello/{name}:
-  displayName: Hello
+  displayName: Hello Greeting
   uriParameters:
     name:
-      displayName: Person Name
+      displayName: Name
       type: string
       required: true
-      example: John
+      pattern: (John|Sally)
   get:
-    description: retrieve a greeting for the person
+    description: retrieve greeting
+    securedBy: [ basic, my-token ]
+    headers:
+      Accept:
+        description: which content type do you want the response to be in
+        type: string
+        required: false
+        pattern: (application/json|text/plain)
+    queryParameters:
+      ttl:
+        displayName: Time to Live
+        description: set the time to live of the greeting (ie. calling this endpoint again within the timeframe will return the same result)
+        required: false
+        type: string
+        example: 30s
     responses:
       200:
-        description: greeting found for person
+        description: retrieved the greeting successfully
+        headers:
+          ttl:
+            displayName: Time To Live
+            description: how long you can treat this greeting as true
+            required: true
+            type: string
+            example: 30s
         body:
           application/json:
-            schema: !include schemas/hello-greeting-response.json
-            example: !include examples/hello-greeting-response.json
+            schema: !include schemas/greeting-response.json
+            example: !include examples/greeting-response.json
           text/plain:
             example: Hello John!
+      404:
+        description: could not find person to greet
+        body:
+          text/plain:
+            example: Could not find [ Steven ] to greet.
+  /greetings:
+    description: manage list of greetings for person
+    get:
+      description: retrieve list of greetings for user
+      responses:
+        200:
+          description: greetings retrieve successfully
+          body:
+            application/json:
+              schema: !include schemas/greetings-response.json
+              example: !include examples/greetings-response.json
+        404:
+          description: could not find person to greet
+          body:
+            text/plain:
+              example: Could not find [ Steven ] to greet.
+    put:
+      description: add a greeting to be used
+      securedBy: [ basic ]
+      body:
+        application/json:
+          schema: !include schemas/greeting-request.json
+          example: !include examples/greeting-request.json
+        text/plain:
+          example: Why hello there {name}
+      responses:
+        200:
+          description: greeting successfully created
+          body:
+            application/json:
+              schema: !include schemas/greetings-response.json
+              example: !include examples/greetings-response.json
+        400:
+          description: greeting had an error
+          body:
+            text/plain:
+              example: "Greeting could not be processed."

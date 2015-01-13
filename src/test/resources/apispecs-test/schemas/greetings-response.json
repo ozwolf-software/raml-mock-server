@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "properties": {
+        "name": { "type": "string" },
+        "greetings": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    },
+    "required": [ "name", "greetings" ]
+}

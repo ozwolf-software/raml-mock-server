@@ -1,68 +1,65 @@
 package net.ozwolf.mockserver.raml.internal.validator.parameters;
 
-import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiParameter;
-import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
+import net.ozwolf.mockserver.raml.exception.NoValidActionException;
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
+import net.ozwolf.mockserver.raml.internal.validator.Validator;
 import org.raml.model.parameter.AbstractParam;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public abstract class ParametersValidator {
+public abstract class ParametersValidator implements Validator {
     private final String parameterType;
-    private final ApiRequest request;
-    private final ApiAction action;
+    private final ApiExpectation expectation;
 
-    protected ParametersValidator(String parameterType,
-                                  ApiRequest request,
-                                  ApiAction action) {
+    protected ParametersValidator(String parameterType, ApiExpectation expectation) {
         this.parameterType = parameterType;
-        this.request = request;
-        this.action = action;
+        this.expectation = expectation;
     }
 
-    public List<String> validate() {
-        List<String> errors = new ArrayList<>();
+    @Override
+    public ValidationErrors validate() {
+        ValidationErrors errors = new ValidationErrors();
 
-        List<ApiParameter> parameters = getParameters();
-        if (parameters == null || parameters.isEmpty())
-            return errors;
+        if (!this.expectation.hasValidAction())
+            throw new NoValidActionException(expectation);
 
-        parameters.stream().forEach(p -> {
-            List<String> values = getValues(p.getName());
+        Map<String, ? extends AbstractParam> parameters = getParameters();
+        if (parameters.isEmpty()) return errors;
 
-            AbstractParam parameter = p.getParameter();
+        parameters.entrySet().stream()
+                .forEach(p -> {
+                    String name = p.getKey();
+                    AbstractParam parameter = p.getValue();
+                    List<String> values = getValues(p.getKey());
 
-            if (!parameter.isRequired() && values.isEmpty())
-                return;
+                    if (!parameter.isRequired() && values.isEmpty())
+                        return;
 
-            if (parameter.isRequired() && values.isEmpty()) {
-                errors.add(String.format("%s [ %s ]: Parameter is compulsory but no value(s) provided.", parameterType, p.getName()));
-                return;
-            }
+                    if (parameter.isRequired() && values.isEmpty()) {
+                        errors.addMessage("%s [ %s ]: Parameter is compulsory but no value(s) provided.", parameterType, name);
+                        return;
+                    }
 
-            if (!parameter.isRepeat() && values.size() > 1)
-                errors.add(String.format("%s [ %s ]: Only one value allowed but multiple values provided.", parameterType, p.getName()));
+                    if (!parameter.isRepeat() && values.size() > 1)
+                        errors.addMessage("%s [ %s ]: Only one value allowed but multiple values provided.", parameterType, name);
 
-            values.stream()
-                    .forEach(v -> {
-                        if (!parameter.validate(v))
-                            errors.add(String.format("%s [ %s ]: Value of [ %s ] does not meet API requirements.", parameterType, p.getName(), v));
-                    });
-        });
+                    values.stream()
+                            .forEach(v -> {
+                                if (!parameter.validate(v))
+                                    errors.addMessage("%s [ %s ]: Value of [ %s ] does not meet API requirements.", parameterType, name, v);
+                            });
+                });
 
         return errors;
     }
 
-    protected ApiRequest request() {
-        return request;
+    protected ApiExpectation expectation() {
+        return expectation;
     }
 
-    protected ApiAction action() {
-        return action;
-    }
-
-    protected abstract List<ApiParameter> getParameters();
+    protected abstract Map<String, ? extends AbstractParam> getParameters();
 
     protected abstract List<String> getValues(String parameterName);
 }

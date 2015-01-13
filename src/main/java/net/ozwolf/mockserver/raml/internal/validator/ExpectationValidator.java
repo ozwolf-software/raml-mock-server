@@ -1,74 +1,30 @@
 package net.ozwolf.mockserver.raml.internal.validator;
 
-import com.sun.jersey.api.uri.UriTemplate;
 import net.ozwolf.mockserver.raml.ExpectationError;
-import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
-import net.ozwolf.mockserver.raml.internal.domain.ApiResponse;
-import org.mockserver.mock.Expectation;
-import org.raml.model.Action;
-import org.raml.model.Raml;
-import org.raml.model.Resource;
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
 public class ExpectationValidator {
-    private final Expectation expectation;
-    private final Raml raml;
+    private final ApiExpectation expectation;
 
-    public ExpectationValidator(Expectation expectation, Raml raml) {
+    public ExpectationValidator(ApiExpectation expectation) {
         this.expectation = expectation;
-        this.raml = raml;
     }
 
-    public Optional<ExpectationError> validate(){
-        ExpectationError error = new ExpectationError(expectation);
+    public Optional<ExpectationError> validate() {
+        ValidationErrors errors = new ValidationErrors();
 
-        Optional<Resource> resource = findResourceFor(expectation.getHttpRequest().getPath());
+        errors.combineWith(new RequestValidator(expectation).validate());
+        errors.combineWith(new ResponseValidator(expectation).validate());
 
-        if (!resource.isPresent())
-            return of(error.withError(String.format("No resource found in specification for path [ %s ]", expectation.getHttpRequest().getPath())));
+        if (!errors.isInError())
+            return empty();
 
-        Optional<Action> action = of(resource.get().getAction(expectation.getHttpRequest().getMethod()));
-
-        if (!action.isPresent())
-            return of(error.withError(String.format("Resource [ %s ] does not accept a method call of [ %s ]", resource.get().getUri(), expectation.getHttpRequest().getMethod())));
-
-        ApiAction apiAction = new ApiAction(raml, action.get());
-        ApiRequest apiRequest = new ApiRequest(expectation.getHttpRequest());
-        ApiResponse apiResponse = new ApiResponse(expectation.getHttpResponse(false));
-
-        List<String> requestErrors = new RequestValidator(apiAction, apiRequest).validate();
-        List<String> responseErrors = new ResponseValidator(apiAction, apiResponse).validate();
-
-        requestErrors.stream().forEach(error::withError);
-        responseErrors.stream().forEach(error::withError);
-
-        return error.isInError() ? of(error) : empty();
-    }
-
-    private Optional<Resource> findResourceFor(String path) {
-        return findResourceIn(path, raml.getResources());
-    }
-
-    private Optional<Resource> findResourceIn(String path, Map<String, Resource> resources) {
-        return resources.entrySet().stream()
-                .map(e -> {
-                    if (new UriTemplate(e.getValue().getUri()).match(path, new HashMap<>()))
-                        return of(e.getValue());
-
-                    Map<String, Resource> children = e.getValue().getResources();
-                    if (children != null)
-                        return findResourceIn(path, children);
-
-                    return Optional.<Resource>empty();
-                })
-                .reduce(empty(), (a, b) -> (b.isPresent()) ? b : a);
+        return of(new ExpectationError(expectation, errors));
     }
 }

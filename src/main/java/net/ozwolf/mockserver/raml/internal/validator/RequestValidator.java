@@ -1,36 +1,49 @@
 package net.ozwolf.mockserver.raml.internal.validator;
 
-import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.body.RequestBodyValidator;
-import net.ozwolf.mockserver.raml.internal.validator.parameters.HeaderParametersValidator;
-import net.ozwolf.mockserver.raml.internal.validator.parameters.QueryParametersValidator;
-import net.ozwolf.mockserver.raml.internal.validator.parameters.UriParametersValidator;
-import net.ozwolf.mockserver.raml.internal.validator.security.SecurityValidator;
+import net.ozwolf.mockserver.raml.internal.validator.parameters.RequestHeaderParametersValidator;
+import net.ozwolf.mockserver.raml.internal.validator.parameters.RequestQueryParametersValidator;
+import net.ozwolf.mockserver.raml.internal.validator.parameters.RequestUriParametersValidator;
+import net.ozwolf.mockserver.raml.internal.validator.security.RequestSecurityValidator;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestValidator {
-    private final ApiAction action;
-    private final ApiRequest request;
+public class RequestValidator implements Validator {
+    private final ApiExpectation expectation;
 
-    public RequestValidator(ApiAction action,
-                            ApiRequest request) {
-        this.action = action;
-        this.request = request;
+    public RequestValidator(ApiExpectation expectation) {
+        this.expectation = expectation;
     }
 
-    public List<String> validate() {
-        List<String> errors = new ArrayList<>();
+    @Override
+    public ValidationErrors validate() {
+        ValidationErrors errors = new ValidationErrors();
 
-        errors.addAll(new SecurityValidator(request, action).validate());
-        errors.addAll(new HeaderParametersValidator(request, action).validate());
-        errors.addAll(new UriParametersValidator(request, action).validate());
-        errors.addAll(new QueryParametersValidator(request, action).validate());
-        errors.addAll(new RequestBodyValidator(request, action).validate());
+        if (!this.expectation.hasValidResource()) {
+            errors.addMessage("Request: No resource matching URI [ %s ] found.", expectation.getUri());
+            return errors;
+        }
+
+        if (!this.expectation.hasValidAction()) {
+            errors.addMessage("Request: Resource for URI [ %s ] does not support method [ %s ].", expectation.getUri(), expectation.getMethod());
+            return errors;
+        }
+
+        getValidators().stream().forEach(v -> errors.combineWith(v.validate()));
 
         return errors;
     }
 
+    protected List<Validator> getValidators() {
+        List<Validator> validators = new ArrayList<>();
+        validators.add(new RequestSecurityValidator(expectation));
+        validators.add(new RequestUriParametersValidator(expectation));
+        validators.add(new RequestHeaderParametersValidator(expectation));
+        validators.add(new RequestQueryParametersValidator(expectation));
+        validators.add(new RequestBodyValidator(expectation));
+        return validators;
+    }
 }

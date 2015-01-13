@@ -1,49 +1,53 @@
 package net.ozwolf.mockserver.raml.internal.validator.body;
 
-import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiBody;
-import net.ozwolf.mockserver.raml.internal.domain.ApiResponse;
-import net.ozwolf.mockserver.raml.internal.validator.body.content.JsonContentValidator;
+import net.ozwolf.mockserver.raml.exception.NoValidActionException;
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.BodySpecification;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
+import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.raml.model.Response;
 
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-public class ResponseBodyValidator {
-    private final ApiResponse response;
-    private final ApiAction action;
+public class ResponseBodyValidator implements Validator {
+    private final ApiExpectation expectation;
 
-    public ResponseBodyValidator(ApiResponse response, ApiAction action) {
-        this.response = response;
-        this.action = action;
+    public ResponseBodyValidator(ApiExpectation expectation) {
+        this.expectation = expectation;
     }
 
-    public List<String> validate() {
-        List<String> errors = new ArrayList<>();
+    @Override
+    public ValidationErrors validate() {
+        ValidationErrors errors = new ValidationErrors();
 
-        Integer statusCode = response.getStatusCode();
-        MediaType contentType = response.getContentType();
-        Optional<ApiBody> body = action.getResponseBody(statusCode, contentType);
-        Optional<String> responseBody = response.getBody();
+        if (!expectation.hasValidAction())
+            throw new NoValidActionException(expectation);
 
-        if (!body.isPresent()) {
-            errors.add(String.format("Response [ %d %s ]: No response specification exists.", statusCode, contentType));
+        Integer statusCode = expectation.getResponseStatusCode();
+        MediaType contentType = expectation.getResponseContentType();
+
+        Optional<Response> response = expectation.getResponse();
+
+        if (!response.isPresent()) {
+            errors.addMessage("Response [ %s %s ] [ %d ] [ %s ]: No response specification exists.", expectation.getMethod(), expectation.getUri(), statusCode, contentType);
             return errors;
         }
 
-        Optional<String> schema = body.get().getSchema();
+        Optional<BodySpecification> specification = expectation.getResponseBodySpecification();
+        Optional<String> responseBody = expectation.getResponseBody();
 
-        if (!body.get().getSchema().isPresent())
+        if (!specification.isPresent() && responseBody.isPresent()) {
+            errors.addMessage("Response [ %s %s ] [ %d ] [ %s ]: No response specification exists.  Acceptable content types are: [ %s ]", expectation.getMethod(), expectation.getUri(), statusCode, contentType, expectation.getAllowedResponseContentTypes());
             return errors;
+        }
 
         if (!responseBody.isPresent()) {
-            errors.add(String.format("Response [ %d %s ]: Has an expected response but none returned.", statusCode, contentType));
+            errors.addMessage("Response [ %d %s ]: Has an expected response but none returned.", statusCode, contentType);
             return errors;
         }
 
-        if (contentType.isCompatible(MediaType.APPLICATION_JSON_TYPE))
-            errors.addAll(new JsonContentValidator("Request Body").validate(schema.get(), responseBody.get()));
+        errors.combineWith(specification.get().validate(responseBody.get()));
 
         return errors;
     }

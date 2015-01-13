@@ -1,58 +1,55 @@
 package net.ozwolf.mockserver.raml.internal.validator.body;
 
-import net.ozwolf.mockserver.raml.internal.domain.ApiAction;
-import net.ozwolf.mockserver.raml.internal.domain.ApiBody;
-import net.ozwolf.mockserver.raml.internal.domain.ApiRequest;
-import net.ozwolf.mockserver.raml.internal.validator.body.content.JsonContentValidator;
+import net.ozwolf.mockserver.raml.exception.NoValidActionException;
+import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import net.ozwolf.mockserver.raml.internal.domain.BodySpecification;
+import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
+import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.raml.model.Action;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-public class RequestBodyValidator {
-    private final ApiRequest request;
-    private final ApiAction action;
+public class RequestBodyValidator implements Validator {
+    private final ApiExpectation expectation;
 
-    public RequestBodyValidator(ApiRequest request, ApiAction action) {
-        this.request = request;
-        this.action = action;
+    public RequestBodyValidator(ApiExpectation expectation) {
+        this.expectation = expectation;
     }
 
-    public List<String> validate() {
-        List<String> errors = new ArrayList<>();
+    @Override
+    public ValidationErrors validate() {
+        ValidationErrors errors = new ValidationErrors();
 
-        if (!action.hasBody()) return errors;
+        Action action = expectation.getAction()
+                .orElseThrow(() -> new NoValidActionException(expectation));
 
-        Optional<String> requestBody = request.getBody();
+        if (!action.hasBody())
+            return errors;
+
+        Optional<String> requestBody = expectation.getRequestBody();
 
         if (action.hasBody() && !requestBody.isPresent()) {
-            errors.add(String.format("Request Body: Content expected but none provided"));
+            errors.addMessage("Request Body: Content expected but none provided.");
             return errors;
         }
 
-        MediaType contentType = request.getContentType();
-        Optional<ApiBody> body = action.getRequestBody(contentType);
+        MediaType contentType = expectation.getRequestContentType();
 
         if (contentType.isWildcardType()) {
-            errors.add(String.format("Request Body: Validator currently does not support wildcard [ %s ] header values.", HttpHeaders.CONTENT_TYPE));
+            errors.addMessage("Request Body: Validator currently does not support wildcard [ %s ] header values.", HttpHeaders.CONTENT_TYPE);
             return errors;
         }
+
+        Optional<BodySpecification> body = expectation.getRequestBodySpecification();
 
         if (!body.isPresent()) {
-            errors.add(String.format("Request Body: Unrecognised content type of [ %s ].  Acceptable content types are: [ %s ]", HttpHeaders.CONTENT_TYPE, action.getRequestContentTypes()));
+            errors.addMessage("Request Body: Unrecognised content type of [ %s ].  Acceptable content types are: [ %s ]", contentType, expectation.getAllowedRequestContentTypes());
             return errors;
         }
 
-        Optional<String> schema = body.get().getSchema();
-
-        if (!schema.isPresent())
-            return errors;
-
-        if (contentType.isCompatible(MediaType.APPLICATION_JSON_TYPE))
-            errors.addAll(new JsonContentValidator("Request Body").validate(schema.get(), requestBody.get()));
-
+        errors.combineWith(body.get().validate(requestBody.get()));
         return errors;
     }
 }
