@@ -1,4 +1,4 @@
-# ${project.name} - ${project.version}
+RAML Mock Server
 
 This tool is designed to allow validation of RAML API specifications against your own descriptors in a MockServer setup.
 
