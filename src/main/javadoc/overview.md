@@ -129,6 +129,19 @@ public class MyDirectSpecificationUsage {
 }
 ```
 
+### Specification Result Output
+
+The `RamlSpecification.Result.getFormattedErrorMessage()` output is designed to be human-readable in a JUnit output.  It's output will look something like the following:
+
+```
+Expectation(s) did not meet RAML specification requirements:
+	[ expectation ] [ PUT ] [ /hello/Sarah/greetings ]
+	    [ request ] [ security ] Missing required security credentials.  Must use one of [ my-token, basic ].
+		[ request ] [ uri ] [ name ] Value of [ Sarah ] does not meet API requirements.
+		[ request ] [ body ] object has missing required properties (["greeting"])
+		[ response ] [ body ] object has missing required properties (["name"])
+```
+
 ## Other Documentation
 
 Please see the following documentation for other information:
