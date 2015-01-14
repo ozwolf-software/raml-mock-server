@@ -9,9 +9,12 @@ import net.ozwolf.mockserver.raml.internal.validator.Validator;
 import org.junit.Before;
 import org.junit.Test;
 import org.raml.model.Action;
+import org.raml.model.MimeType;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.fixture;
@@ -27,6 +30,8 @@ public class RequestBodyValidatorTest {
 
     @Before
     public void setUp() {
+        Map<String, MimeType> contentTypes = getContentTypes();
+        when(action.getBody()).thenReturn(contentTypes);
         when(expectation.getAction()).thenReturn(Optional.of(action));
         when(expectation.getUri()).thenReturn("/hello/John/greetings");
         when(expectation.getMethod()).thenReturn("PUT");
@@ -57,7 +62,7 @@ public class RequestBodyValidatorTest {
         ValidationErrors errors = validator.validate();
         assertThat(errors.isInError(), is(true));
         assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("Request Body: Content expected but none provided."));
+        assertThat(errors.getMessages(), hasItem("[ request ] Has an expected request body but none provided."));
     }
 
     @Test
@@ -70,7 +75,7 @@ public class RequestBodyValidatorTest {
         ValidationErrors errors = validator.validate();
         assertThat(errors.isInError(), is(true));
         assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("Request Body: Validator currently does not support wildcard [ Content-Type ] header values."));
+        assertThat(errors.getMessages(), hasItem("[ request ] Wildcard or no content type provided in request."));
     }
 
     @Test
@@ -79,12 +84,11 @@ public class RequestBodyValidatorTest {
         when(expectation.getRequestBody()).thenReturn(Optional.of(fixture("apispecs-test/examples/greeting-response.json")));
         when(expectation.getRequestContentType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
         when(expectation.getRequestBodySpecification()).thenReturn(Optional.<BodySpecification>empty());
-        when(expectation.getAllowedRequestContentTypes()).thenReturn("application/xml, text/plain");
 
         Validator validator = new RequestBodyValidator(expectation);
         ValidationErrors errors = validator.validate();
         assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("Request Body: Unrecognised content type of [ application/json ].  Acceptable content types are: [ application/xml, text/plain ]"));
+        assertThat(errors.getMessages(), hasItem("[ request ] No request specification exists for [ application/json ].  Acceptable content types are [ application/xml, text/plain ]"));
     }
 
     @Test
@@ -106,5 +110,16 @@ public class RequestBodyValidatorTest {
         ValidationErrors errors = validator.validate();
         assertThat(errors.getMessages().size(), is(1));
         assertThat(errors.getMessages(), hasItem("Request Body: The content did not match the provided schema."));
+    }
+
+    private Map<String, MimeType> getContentTypes() {
+        Map<String, MimeType> contentTypes = new HashMap<>();
+
+        MimeType mimeType = mock(MimeType.class);
+
+        contentTypes.put(MediaType.APPLICATION_XML, mimeType);
+        contentTypes.put(MediaType.TEXT_PLAIN, mimeType);
+
+        return contentTypes;
     }
 }

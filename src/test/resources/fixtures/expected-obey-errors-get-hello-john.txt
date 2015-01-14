@@ -1,0 +1,4 @@
+Expectation did not meet RAML specification requirements:
+	[ expectation ] [ GET ] [ /hello/John ]
+		[ request ] [ security ] Missing required security credentials.  Must use one of [ my-token, basic ].
+		[ response ] [ header ] [ ttl ] Parameter is compulsory but no value(s) provided.

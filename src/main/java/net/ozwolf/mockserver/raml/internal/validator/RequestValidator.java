@@ -1,5 +1,6 @@
 package net.ozwolf.mockserver.raml.internal.validator;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.body.RequestBodyValidator;
@@ -8,8 +9,9 @@ import net.ozwolf.mockserver.raml.internal.validator.parameters.RequestQueryPara
 import net.ozwolf.mockserver.raml.internal.validator.parameters.RequestUriParametersValidator;
 import net.ozwolf.mockserver.raml.internal.validator.security.RequestSecurityValidator;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class RequestValidator implements Validator {
     private final ApiExpectation expectation;
@@ -23,12 +25,12 @@ public class RequestValidator implements Validator {
         ValidationErrors errors = new ValidationErrors();
 
         if (!this.expectation.hasValidResource()) {
-            errors.addMessage("Request: No resource matching URI [ %s ] found.", expectation.getUri());
+            errors.addMessage("[ request ] No resource matching for request found.");
             return errors;
         }
 
         if (!this.expectation.hasValidAction()) {
-            errors.addMessage("Request: Resource for URI [ %s ] does not support method [ %s ].", expectation.getUri(), expectation.getMethod());
+            errors.addMessage("[ request ] Resource for does not support method.");
             return errors;
         }
 
@@ -37,13 +39,14 @@ public class RequestValidator implements Validator {
         return errors;
     }
 
+    @VisibleForTesting
     protected List<Validator> getValidators() {
-        List<Validator> validators = new ArrayList<>();
-        validators.add(new RequestSecurityValidator(expectation));
-        validators.add(new RequestUriParametersValidator(expectation));
-        validators.add(new RequestHeaderParametersValidator(expectation));
-        validators.add(new RequestQueryParametersValidator(expectation));
-        validators.add(new RequestBodyValidator(expectation));
-        return validators;
+        return newArrayList(
+                new RequestSecurityValidator(expectation),
+                new RequestUriParametersValidator(expectation),
+                new RequestHeaderParametersValidator(expectation),
+                new RequestQueryParametersValidator(expectation),
+                new RequestBodyValidator(expectation)
+        );
     }
 }

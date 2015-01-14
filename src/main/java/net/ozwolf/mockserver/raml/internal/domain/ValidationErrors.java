@@ -1,13 +1,14 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class ValidationErrors {
     private final List<String> messages;
 
     public ValidationErrors() {
-        this.messages = new ArrayList<>();
+        this.messages = newArrayList();
     }
 
     public void addMessage(String error, Object... formattedParameters) {

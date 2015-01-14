@@ -5,9 +5,12 @@ import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.BodySpecification;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.apache.commons.lang.StringUtils;
+import org.raml.model.MimeType;
 import org.raml.model.Response;
 
 import javax.ws.rs.core.MediaType;
+import java.util.Map;
 import java.util.Optional;
 
 public class ResponseBodyValidator implements Validator {
@@ -30,7 +33,7 @@ public class ResponseBodyValidator implements Validator {
         Optional<Response> response = expectation.getResponse();
 
         if (!response.isPresent()) {
-            errors.addMessage("Response [ %s %s ] [ %d ] [ %s ]: No response specification exists.", expectation.getMethod(), expectation.getUri(), statusCode, contentType);
+            errors.addMessage("[ response ] [ %d ] [ %s ] No response body specification exists.", statusCode, contentType);
             return errors;
         }
 
@@ -38,17 +41,24 @@ public class ResponseBodyValidator implements Validator {
         Optional<String> responseBody = expectation.getResponseBody();
 
         if (!specification.isPresent() && responseBody.isPresent()) {
-            errors.addMessage("Response [ %s %s ] [ %d ] [ %s ]: No response specification exists.  Acceptable content types are: [ %s ]", expectation.getMethod(), expectation.getUri(), statusCode, contentType, expectation.getAllowedResponseContentTypes());
+            errors.addMessage("[ response ] [ %d ] [ %s ] No response body specification exists for this content type.  Acceptable content types are [ %s ].", statusCode, contentType, getAllowedContentTypes(response.get().getBody()));
             return errors;
         }
 
         if (!responseBody.isPresent()) {
-            errors.addMessage("Response [ %d %s ]: Has an expected response but none returned.", statusCode, contentType);
+            errors.addMessage("[ response ] [ %d ] [ %s ] Has an expected response body but none returned.", statusCode, contentType);
             return errors;
         }
 
         errors.combineWith(specification.get().validate(responseBody.get()));
 
         return errors;
+    }
+
+    private String getAllowedContentTypes(Map<String, MimeType> contentTypes){
+        if (contentTypes == null)
+            return "n/a";
+
+        return StringUtils.join(contentTypes.keySet(), ", ");
     }
 }

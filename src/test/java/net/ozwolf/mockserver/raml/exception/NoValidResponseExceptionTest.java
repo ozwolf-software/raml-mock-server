@@ -17,7 +17,7 @@ public class NoValidResponseExceptionTest {
         when(expectation.getResponseStatusCode()).thenReturn(201);
 
         RamlMockServerException exception = new NoValidResponseException(expectation);
-        assertThat(exception.getMessage(), is("Expectation [ GET /hello/John ] [ 200 ] has no valid matching response specification."));
+        assertThat(exception.getMessage(), is("Expectation [ GET /hello/John ] [ 201 ] has no valid matching response specification."));
     }
 
 }

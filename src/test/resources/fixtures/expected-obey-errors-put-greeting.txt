@@ -1,0 +1,5 @@
+Expectation did not meet RAML specification requirements:
+	[ expectation ] [ PUT ] [ /hello/Sarah/greetings ]
+		[ request ] [ uri ] [ name ] Value of [ Sarah ] does not meet API requirements.
+		[ request ] [ body ] object has missing required properties (["greeting"])
+		[ response ] [ body ] object has missing required properties (["name"])

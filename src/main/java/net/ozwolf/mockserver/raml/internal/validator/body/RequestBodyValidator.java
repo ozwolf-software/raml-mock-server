@@ -5,10 +5,12 @@ import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.BodySpecification;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.apache.commons.lang.StringUtils;
 import org.raml.model.Action;
+import org.raml.model.MimeType;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.util.Map;
 import java.util.Optional;
 
 public class RequestBodyValidator implements Validator {
@@ -31,25 +33,32 @@ public class RequestBodyValidator implements Validator {
         Optional<String> requestBody = expectation.getRequestBody();
 
         if (action.hasBody() && !requestBody.isPresent()) {
-            errors.addMessage("Request Body: Content expected but none provided.");
+            errors.addMessage("[ request ] Has an expected request body but none provided.");
             return errors;
         }
 
         MediaType contentType = expectation.getRequestContentType();
 
         if (contentType.isWildcardType()) {
-            errors.addMessage("Request Body: Validator currently does not support wildcard [ %s ] header values.", HttpHeaders.CONTENT_TYPE);
+            errors.addMessage("[ request ] Wildcard or no content type provided in request.");
             return errors;
         }
 
         Optional<BodySpecification> body = expectation.getRequestBodySpecification();
 
         if (!body.isPresent()) {
-            errors.addMessage("Request Body: Unrecognised content type of [ %s ].  Acceptable content types are: [ %s ]", contentType, expectation.getAllowedRequestContentTypes());
+            errors.addMessage("[ request ] No request specification exists for [ %s ].  Acceptable content types are [ %s ]", contentType, getAllowedContentTypes(action.getBody()));
             return errors;
         }
 
         errors.combineWith(body.get().validate(requestBody.get()));
         return errors;
+    }
+
+    private String getAllowedContentTypes(Map<String, MimeType> contentTypes) {
+        if (contentTypes == null)
+            return "n/a";
+
+        return StringUtils.join(contentTypes.keySet(), ", ");
     }
 }

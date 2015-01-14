@@ -8,11 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResponseHeadersValidator extends ParametersValidator {
+public class ResponseHeaderParametersValidator extends ParametersValidator {
     private final static Header EMPTY_HEADER = new Header("");
 
-    public ResponseHeadersValidator(ApiExpectation expectation) {
-        super("Response Header", expectation);
+    public ResponseHeaderParametersValidator(ApiExpectation expectation) {
+        super("response", "header", expectation);
     }
 
     @Override
@@ -20,7 +20,8 @@ public class ResponseHeadersValidator extends ParametersValidator {
         if (!expectation().hasValidResponse())
             return new HashMap<>();
 
-        return expectation().getResponse().get().getHeaders();
+        Map<String, org.raml.model.parameter.Header> headers = expectation().getResponse().get().getHeaders();
+        return headers == null ? new HashMap<>() : headers;
     }
 
     @Override

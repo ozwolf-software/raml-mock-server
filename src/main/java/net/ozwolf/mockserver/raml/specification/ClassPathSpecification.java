@@ -6,9 +6,28 @@ import org.raml.parser.visitor.RamlDocumentBuilder;
 
 import java.io.InputStream;
 
+/**
+ * # ClassPath RAML Specification
+ *
+ * Create a RAML specification based on a class path location.
+ *
+ * ## Example Usage
+ *
+ * ```java
+ * RamlSpecification specification = new ClassPathSpecification("my-service", "apispecs/apispecs.raml");
+ * ```
+ *
+ * @see net.ozwolf.mockserver.raml.RamlSpecification
+ */
 public class ClassPathSpecification extends RamlSpecification {
     private final String resource;
 
+    /**
+     * Create a new RAML specification
+     *
+     * @param name     The name of specification
+     * @param resource The ClassPath resource to load
+     */
     public ClassPathSpecification(String name, String resource) {
         super(name);
         this.resource = resource;

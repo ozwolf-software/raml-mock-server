@@ -25,17 +25,17 @@ This validation is provided by the [JSON Schema Validator](https://github.com/fg
 
 ```java
 public class MyJunitTest {
-    @Rule
+    {@literal @}Rule
     public final MockServerRule server = new MockServerRule(5000);
     
-    @ClassRule
+    {@literal @}ClassRule
     public final static RamlSpecificationsRule SPECIFICATIONS = new RamlSpecificationsRule()
             .withSpecifications(
                 new ClassPathSpecification("my-local-service", "apispecs/apispecs.yml"),
                 new RemoteSpecification("my-remote-service", "http://remote.site.com/apispecs.zip", ZipArchiveHandler.handler("target/specifications/my-remote-service", "apispecs.raml"))
             );
             
-    @Test
+    {@literal @}Test
     public void shouldInteractWithRemoteServiceCorrectly() {
         MockServiceClient client = new MockServiceClient("localhost", 5000);
         
@@ -79,17 +79,17 @@ public class MyJunitTest {
 
 ```java
 public class MyDirectSpecificationUsage {
-    @Rule
+    {@literal @}Rule
     public final MockServerRule server = new MockServerRule(5000);
     
     private final static RamlSpecification MY_LOCAL_SERVICE = new ClassPathSpecification("my-local-service", "apispecs/apispecs.yml");
     
-    @BeforeClass
+    {@literal @}BeforeClass
     public static void setUpClass(){
         MY_LOCAL_SERVICE.initialize();
     }
     
-    @Test
+    {@literal @}Test
     public void shouldInteractWithRemoteServiceCorrectly() {
         MockServiceClient client = new MockServiceClient("localhost", 5000);
         

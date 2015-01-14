@@ -12,7 +12,7 @@ public class RequestHeaderParametersValidator extends ParametersValidator {
     private final static Header EMPTY_HEADER = new Header("");
 
     public RequestHeaderParametersValidator(ApiExpectation expectation) {
-        super("Request Header", expectation);
+        super("request", "header", expectation);
     }
 
     @Override
@@ -20,7 +20,8 @@ public class RequestHeaderParametersValidator extends ParametersValidator {
         if (!expectation().hasValidAction())
             return new HashMap<>();
 
-        return expectation().getAction().get().getHeaders();
+        Map<String, org.raml.model.parameter.Header> headers = expectation().getAction().get().getHeaders();
+        return headers == null ? new HashMap<>() : headers;
     }
 
     @Override

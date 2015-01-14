@@ -1,9 +1,7 @@
 package net.ozwolf.mockserver.raml.specification;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
+import net.ozwolf.mockserver.raml.RamlResourceHandler;
 import net.ozwolf.mockserver.raml.RamlSpecification;
-import net.ozwolf.mockserver.raml.RemoteResourceHandler;
 import org.apache.commons.io.FileUtils;
 import org.raml.model.Raml;
 import org.raml.parser.loader.FileResourceLoader;
@@ -14,22 +12,42 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
+/**
+ * # Remote RAML Specification
+ *
+ * Create a RAML specification based on a remote location, using the provided handler to create a local copy of this for loading the specification.
+ *
+ * ## Example Usage
+ *
+ * ```java
+ * RamlSpecification specification = new RemoteSpecification("my-service", "http://remote.site.com/apispecs.raml", RamlFileHandler.handler("target/specifications/my-service"));
+ * ```
+ */
 public class RemoteSpecification extends RamlSpecification {
-    private final Client client;
     private final URI resource;
-    private final RemoteResourceHandler handler;
+    private final RamlResourceHandler handler;
 
-    public RemoteSpecification(String name, String resource, RemoteResourceHandler handler) {
+    /**
+     * Create a new remote RAML specification
+     *
+     * @param name    The name of the specification
+     * @param url     The URL the specification can be found at.
+     * @param handler A handler for converting the remote into a local specification path.
+     * @see net.ozwolf.mockserver.raml.handlers.RamlFileHandler
+     * @see net.ozwolf.mockserver.raml.handlers.ZipArchiveHandler
+     */
+    public RemoteSpecification(String name, String url, RamlResourceHandler handler) {
         super(name);
-        this.client = Client.create(new DefaultClientConfig());
-        this.resource = URI.create(resource);
+        this.resource = URI.create(url);
         this.handler = handler;
     }
 
     @Override
     protected Raml getRaml() {
         try {
-            File file = client.resource(resource).get(File.class);
+            File file = File.createTempFile("raml-mock-server-", ".spec");
+            file.deleteOnExit();
+            FileUtils.copyURLToFile(this.resource.toURL(), file);
             File specificationFile = handler.handle(file);
 
             ResourceLoader loader = new FileResourceLoader(specificationFile.getParent());

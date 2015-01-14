@@ -10,9 +10,25 @@ import org.raml.parser.visitor.RamlDocumentBuilder;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * # File Path RAML Specification
+ *
+ * Create a RAML specification based on a filepath location.
+ *
+ * ## Example Usage
+ *
+ * ```java
+ * RamlSpecification specification = new FilePathSpecification("my-service", "src/main/resource/apispecs/apispecs.raml");
+ * ```
+ */
 public class FilePathSpecification extends RamlSpecification {
     private final String filePath;
 
+    /**
+     * Create a new file path RAML specification
+     * @param name The name of the specification
+     * @param filePath The location on the file path the RAML file can be found.
+     */
     public FilePathSpecification(String name, String filePath) {
         super(name);
         this.filePath = filePath;

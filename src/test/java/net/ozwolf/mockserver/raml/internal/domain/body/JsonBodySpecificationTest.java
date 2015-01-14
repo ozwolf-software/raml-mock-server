@@ -35,10 +35,10 @@ public class JsonBodySpecificationTest {
         MimeType mimeType = mock(MimeType.class);
         when(mimeType.getSchema()).thenReturn(schema);
 
-        ValidationErrors errors = new JsonBodySpecification("Request Body", mimeType).validate(request);
+        ValidationErrors errors = new JsonBodySpecification("request", mimeType).validate(request);
 
         assertThat(errors.isInError(), is(true));
         assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("Request Body: object has missing required properties ([\"greeting\"])"));
+        assertThat(errors.getMessages(), hasItem("[ request ] [ body ] object has missing required properties ([\"greeting\"])"));
     }
 }

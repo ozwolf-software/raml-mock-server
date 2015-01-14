@@ -2,7 +2,6 @@ package net.ozwolf.mockserver.raml.internal.domain;
 
 import net.ozwolf.mockserver.raml.exception.NoValidActionException;
 import net.ozwolf.mockserver.raml.exception.NoValidResourceException;
-import net.ozwolf.mockserver.raml.exception.NoValidResponseException;
 import net.ozwolf.mockserver.raml.internal.domain.body.DefaultBodySpecification;
 import net.ozwolf.mockserver.raml.internal.domain.body.JsonBodySpecification;
 import org.apache.commons.lang.StringUtils;
@@ -15,7 +14,12 @@ import org.raml.model.*;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class ApiExpectation {
     private final ApiSpecification specification;
@@ -80,11 +84,8 @@ public class ApiExpectation {
 
     public String getUriValueOf(String parameterName) {
         String uri = getResource().orElseThrow(() -> new NoValidResourceException(this)).getUri();
-        List<String> uriParts = new ArrayList<>();
-        List<String> pathParts = new ArrayList<>();
-
-        Collections.addAll(uriParts, StringUtils.split(uri, "/"));
-        Collections.addAll(pathParts, StringUtils.split(request.getPath(), "/"));
+        List<String> uriParts = newArrayList(StringUtils.split(uri, "/"));
+        List<String> pathParts = newArrayList(StringUtils.split(request.getPath(), "/"));
 
         int parameterIndex = uriParts.indexOf(String.format("{%s}", parameterName));
         return pathParts.get(parameterIndex);
@@ -116,32 +117,12 @@ public class ApiExpectation {
         );
     }
 
-    public String getAllowedRequestContentTypes() {
-        Action action = getAction().orElseThrow(() -> new NoValidActionException(this));
-        if (action.getBody() == null) return "";
-        return StringUtils.join(
-                action.getBody().keySet(),
-                ", "
-        );
-    }
-
-    public String getAllowedResponseContentTypes() {
-        Response response = getResponse().orElseThrow(() -> new NoValidResponseException(this));
-        if (response.getBody() == null)
-            return "";
-        return StringUtils.join(
-                response.getBody().keySet(),
-                ", "
-        );
-    }
-
     public Optional<BodySpecification> getRequestBodySpecification() {
         Optional<MimeType> body = specification.getRequestBodyFor(this);
-        if (!body.isPresent())
-            return Optional.empty();
+        if (!body.isPresent()) return Optional.empty();
 
         if (MediaType.APPLICATION_JSON_TYPE.isCompatible(this.getRequestContentType()))
-            return Optional.of(new JsonBodySpecification("Request Body", body.get()));
+            return Optional.of(new JsonBodySpecification("request", body.get()));
 
         return Optional.of(new DefaultBodySpecification(this.getResponseContentType()));
     }
@@ -152,7 +133,7 @@ public class ApiExpectation {
             return Optional.empty();
 
         if (MediaType.APPLICATION_JSON_TYPE.isCompatible(this.getResponseContentType()))
-            return Optional.of(new JsonBodySpecification("Response Body", body.get()));
+            return Optional.of(new JsonBodySpecification("response", body.get()));
 
         return Optional.of(new DefaultBodySpecification(this.getResponseContentType()));
     }
@@ -175,10 +156,6 @@ public class ApiExpectation {
                 });
 
         return security;
-    }
-
-    public String getSecuritySpecificationDescription() {
-        return StringUtils.join(getSecuritySpecification().keySet(), ", ");
     }
 
     public Integer getResponseStatusCode() {

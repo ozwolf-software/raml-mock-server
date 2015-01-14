@@ -2,10 +2,14 @@ package net.ozwolf.mockserver.raml;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
+/**
+ * # MockServer Expectation Error
+ *
+ * Designed to hold validation errors for a `MockServer` expectation that fails to meet the rules of a RAML API specification.
+ */
 public class ExpectationError {
     private final ApiExpectation expectation;
     private final ValidationErrors errors;
@@ -15,12 +19,15 @@ public class ExpectationError {
         this.errors = errors;
     }
 
-    public List<String> getMessages() {
-        return errors.getMessages();
+    public String getUri() {
+        return expectation.getUri();
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s %s: [ %s ]", expectation.getMethod(), expectation.getUri(), StringUtils.join(this.errors.getMessages(), " ] [ "));
+    public String getMethod() {
+        return expectation.getMethod();
+    }
+
+    public List<String> getMessages() {
+        return errors.getMessages();
     }
 }

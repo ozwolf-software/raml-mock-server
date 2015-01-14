@@ -2,7 +2,6 @@ package net.ozwolf.mockserver.raml.internal.domain;
 
 import net.ozwolf.mockserver.raml.exception.NoValidActionException;
 import net.ozwolf.mockserver.raml.exception.NoValidResourceException;
-import net.ozwolf.mockserver.raml.exception.NoValidResponseException;
 import net.ozwolf.mockserver.raml.internal.domain.body.DefaultBodySpecification;
 import net.ozwolf.mockserver.raml.internal.domain.body.JsonBodySpecification;
 import org.junit.Rule;
@@ -13,17 +12,15 @@ import org.mockserver.model.Header;
 import org.mockserver.model.Parameter;
 import org.raml.model.Action;
 import org.raml.model.Resource;
-import org.raml.model.Response;
 import org.raml.model.SecurityScheme;
 import org.raml.parser.visitor.RamlDocumentBuilder;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.any;
@@ -119,16 +116,6 @@ public class ApiExpectationTest {
     }
 
     @Test
-    public void shouldReturnAllowedRequestContentTypesAsString() {
-        assertThat(PUT_EXPECTATION.getAllowedRequestContentTypes(), is("application/json, text/plain"));
-    }
-
-    @Test
-    public void shouldReturnAllowedResponseContentTypesAsString() {
-        assertThat(GET_EXPECTATION.getAllowedResponseContentTypes(), is("application/json, text/plain"));
-    }
-
-    @Test
     public void shouldReturnValidResponseBodySpecification() {
         assertThat(GET_EXPECTATION.getResponseBodySpecification().isPresent(), is(true));
         assertThat(GET_EXPECTATION.getResponseBodySpecification().get(), instanceOf(JsonBodySpecification.class));
@@ -149,33 +136,12 @@ public class ApiExpectationTest {
         assertThat(schemes.containsKey("my-token"), is(true));
     }
 
-    @Test
-    public void shouldReturnSecuritySpecificationsDescriptionAsString() {
-        assertThat(GET_EXPECTATION.getSecuritySpecificationDescription(), is("my-token, basic"));
-    }
-
     @Test(expected = NoValidResourceException.class)
     public void shouldThrowNoValidResourceExceptionWhenAttemptingToGetUriValueButNoMatchingResource() {
         ApiSpecification specification = mock(ApiSpecification.class);
         when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.<Resource>empty());
 
         new ApiExpectation(specification, MOCK_GET_EXPECTATION).getUriValueOf("name");
-    }
-
-    @Test(expected = NoValidActionException.class)
-    public void shouldThrowNoValidActionExceptionWhenAttemptingToGetAllowedRequestContentTypes() {
-        ApiSpecification specification = mock(ApiSpecification.class);
-        when(specification.getActionFor(any(ApiExpectation.class))).thenReturn(Optional.<Action>empty());
-
-        new ApiExpectation(specification, MOCK_GET_EXPECTATION).getAllowedRequestContentTypes();
-    }
-
-    @Test(expected = NoValidResponseException.class)
-    public void shouldThrowNoValidResponseExceptionWhenAttemptingToGetAllowedResponseContentTypes() {
-        ApiSpecification specification = mock(ApiSpecification.class);
-        when(specification.getResponseFor(any(ApiExpectation.class))).thenReturn(Optional.<Response>empty());
-
-        new ApiExpectation(specification, MOCK_GET_EXPECTATION).getAllowedResponseContentTypes();
     }
 
     @Test(expected = NoValidResourceException.class)
@@ -189,7 +155,7 @@ public class ApiExpectationTest {
     @Test(expected = NoValidActionException.class)
     public void shouldThrowNoValidActionExceptionWhenAttemptingToGetSecuritySpecification() {
         Resource resource = mock(Resource.class);
-        when(resource.getSecuredBy()).thenReturn(new ArrayList<>());
+        when(resource.getSecuredBy()).thenReturn(newArrayList());
 
         ApiSpecification specification = mock(ApiSpecification.class);
         when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.of(resource));

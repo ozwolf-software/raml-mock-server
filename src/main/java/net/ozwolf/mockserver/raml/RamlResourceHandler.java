@@ -9,10 +9,13 @@ import java.io.File;
  *
  * Two default handlers are provided automatically:
  *
- * + `RamlFileRemoteResourceHandler` - Assumes the remote specification is a single RAML file and will copy it to the specified target directory for further use.
- * + `ArchiveRemoteResourceHandler` - Assumes the remote resource is a ZIP archive that needs to be unpacked then copied to the specified target directoy.  It then uses the specified specification file name to load specifications.
+ * + `RamlFileHandler` - Assumes the resource is a single RAML file and will copy it to the specified target directory for further use.
+ * + `ZipArchiveHandler` - Assumes the resource is a ZIP archive that needs to be unpacked then copied to the specified target directoy.  It then uses the specified specification file name to load specifications.
+ *
+ * @see net.ozwolf.mockserver.raml.handlers.RamlFileHandler
+ * @see net.ozwolf.mockserver.raml.handlers.ZipArchiveHandler
  */
-public interface RemoteResourceHandler {
+public interface RamlResourceHandler {
     /**
      * Handle the downloaded file and return a File object referencing the root RAML specification file.
      *

@@ -1,16 +1,15 @@
 package net.ozwolf.mockserver.raml.internal.validator.parameters;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import org.apache.commons.lang.StringUtils;
 import org.raml.model.parameter.AbstractParam;
+import org.raml.model.parameter.UriParameter;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RequestUriParametersValidator extends ParametersValidator {
     public RequestUriParametersValidator(ApiExpectation expectation) {
-        super("Request URI Parameter", expectation);
+        super("request", "uri", expectation);
     }
 
     @Override
@@ -18,12 +17,15 @@ public class RequestUriParametersValidator extends ParametersValidator {
         if (!expectation().hasValidResource())
             return new HashMap<>();
 
-        return expectation().getResource().get().getResolvedUriParameters();
+        Map<String, UriParameter> parameters = expectation().getResource().get().getResolvedUriParameters();
+        return parameters == null ? new HashMap<>() : parameters;
     }
 
     @Override
     protected List<String> getValues(String parameterName) {
         String value = expectation().getUriValueOf(parameterName);
+        if (StringUtils.isBlank(value))
+            return new ArrayList<>();
         return Arrays.asList(value);
     }
 }

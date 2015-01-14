@@ -3,6 +3,7 @@ package net.ozwolf.mockserver.raml.internal.validator.parameters;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import org.mockserver.model.Parameter;
 import org.raml.model.parameter.AbstractParam;
+import org.raml.model.parameter.QueryParameter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +13,7 @@ public class RequestQueryParametersValidator extends ParametersValidator {
     private final static Parameter EMPTY_PARAMETER = new Parameter("");
 
     public RequestQueryParametersValidator(ApiExpectation expectation) {
-        super("Request Query Parameter", expectation);
+        super("request", "query", expectation);
     }
 
     @Override
@@ -20,7 +21,8 @@ public class RequestQueryParametersValidator extends ParametersValidator {
         if (!expectation().hasValidAction())
             return new HashMap<>();
 
-        return expectation().getAction().get().getQueryParameters();
+        Map<String, QueryParameter> parameters = expectation().getAction().get().getQueryParameters();
+        return parameters == null ? new HashMap<>() : parameters;
     }
 
     @Override

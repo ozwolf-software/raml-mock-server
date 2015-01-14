@@ -3,6 +3,7 @@ package net.ozwolf.mockserver.raml.internal.validator.security;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.apache.commons.lang.StringUtils;
 import org.mockserver.model.Header;
 import org.mockserver.model.KeyToMultiValue;
 import org.mockserver.model.Parameter;
@@ -47,7 +48,7 @@ public class RequestSecurityValidator implements Validator {
                 .forEach(e -> usedSecurity.put(e.getKey(), e.getValue()));
 
         if (usedSecurity.isEmpty()) {
-            errors.addMessage("Security: Missing required security credentials.  Must use one of [ %s ]", expectation.getSecuritySpecificationDescription());
+            errors.addMessage("[ request ] [ security ] Missing required security credentials.  Must use one of [ %s ].", getAllowedSchemes(security));
             return errors;
         }
 
@@ -60,7 +61,7 @@ public class RequestSecurityValidator implements Validator {
                                 Optional<Header> requestHeader = expectation.getRequestHeader(h.getKey());
 
                                 if (requestHeader.isPresent())
-                                    errors.combineWith(verifyParameters("Security Header", h.getKey(), requestHeader.get(), h.getValue()));
+                                    errors.combineWith(verifyParameters("header", s.getKey(), requestHeader.get(), h.getValue()));
                             });
 
                     descriptor.getQueryParameters().entrySet().stream()
@@ -68,7 +69,7 @@ public class RequestSecurityValidator implements Validator {
                                 Optional<Parameter> queryParameter = expectation.getQueryParameter(p.getKey());
 
                                 if (queryParameter.isPresent())
-                                    errors.combineWith(verifyParameters("Security Parameter", p.getKey(), queryParameter.get(), p.getValue()));
+                                    errors.combineWith(verifyParameters("query", s.getKey(), queryParameter.get(), p.getValue()));
                             });
                 });
 
@@ -76,20 +77,24 @@ public class RequestSecurityValidator implements Validator {
     }
 
     private ValidationErrors verifyParameters(String parameterType,
-                                    String name,
-                                    KeyToMultiValue parameter,
-                                    AbstractParam specification) {
+                                              String name,
+                                              KeyToMultiValue parameter,
+                                              AbstractParam specification) {
         ValidationErrors errors = new ValidationErrors();
 
         if (parameter.getValues().size() > 1)
-            errors.addMessage("%s [ %s ]: Only one value allowed for security parameters but multiple found.", parameterType, name);
+            errors.addMessage("[ security ] [ %s ] [ %s ] Only one value allowed for security parameters but multiple found.", parameterType, name);
 
         parameter.getValues().stream()
                 .forEach(v -> {
                     if (!specification.validate(v))
-                        errors.addMessage("%s [ %s ]: Value of [ %s ] does not meet API requirements.", parameterType, name, v);
+                        errors.addMessage("[ security ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", parameterType, name, v);
                 });
 
         return errors;
+    }
+
+    private String getAllowedSchemes(Map<String, SecurityScheme> security) {
+        return StringUtils.join(security.keySet(), ", ");
     }
 }

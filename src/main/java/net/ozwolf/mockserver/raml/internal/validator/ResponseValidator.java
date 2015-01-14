@@ -3,10 +3,12 @@ package net.ozwolf.mockserver.raml.internal.validator;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.body.ResponseBodyValidator;
-import net.ozwolf.mockserver.raml.internal.validator.parameters.ResponseHeadersValidator;
+import net.ozwolf.mockserver.raml.internal.validator.parameters.ResponseHeaderParametersValidator;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class ResponseValidator implements Validator {
     private final ApiExpectation expectation;
@@ -20,7 +22,7 @@ public class ResponseValidator implements Validator {
         ValidationErrors errors = new ValidationErrors();
 
         if (!expectation.hasValidResponse()) {
-            errors.addMessage("Response [ %d %s ]: Specification does not allow response of this content type for this status code.", expectation.getResponseStatusCode(), expectation.getResponseContentType());
+            errors.addMessage("[ response ] No valid response specification exists for expectation.");
             return errors;
         }
 
@@ -30,9 +32,9 @@ public class ResponseValidator implements Validator {
     }
 
     protected List<Validator> getValidators() {
-        List<Validator> validators = new ArrayList<>();
-        validators.add(new ResponseHeadersValidator(expectation));
-        validators.add(new ResponseBodyValidator(expectation));
-        return validators;
+        return newArrayList(
+                new ResponseHeaderParametersValidator(expectation),
+                new ResponseBodyValidator(expectation)
+        );
     }
 }

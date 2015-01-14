@@ -4,6 +4,7 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -34,7 +35,7 @@ public class RamlSpecificationsRule implements TestRule {
     }
 
     public RamlSpecificationsRule withSpecifications(RamlSpecification... specifications) {
-        this.specifications.stream().forEach(this::withSpecifications);
+        Arrays.asList(specifications).stream().forEach(this::withSpecification);
         return this;
     }
 

@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class ParametersValidator implements Validator {
+    private final String actionType;
     private final String parameterType;
     private final ApiExpectation expectation;
 
-    protected ParametersValidator(String parameterType, ApiExpectation expectation) {
+    protected ParametersValidator(String actionType, String parameterType, ApiExpectation expectation) {
+        this.actionType = actionType;
         this.parameterType = parameterType;
         this.expectation = expectation;
     }
@@ -38,17 +40,17 @@ public abstract class ParametersValidator implements Validator {
                         return;
 
                     if (parameter.isRequired() && values.isEmpty()) {
-                        errors.addMessage("%s [ %s ]: Parameter is compulsory but no value(s) provided.", parameterType, name);
+                        errors.addMessage("[ %s ] [ %s ] [ %s ] Parameter is compulsory but no value(s) provided.", actionType, parameterType, name);
                         return;
                     }
 
                     if (!parameter.isRepeat() && values.size() > 1)
-                        errors.addMessage("%s [ %s ]: Only one value allowed but multiple values provided.", parameterType, name);
+                        errors.addMessage("[ %s ] [ %s ] [ %s ] Only one value allowed but multiple values provided.", actionType, parameterType, name);
 
                     values.stream()
                             .forEach(v -> {
                                 if (!parameter.validate(v))
-                                    errors.addMessage("%s [ %s ]: Value of [ %s ] does not meet API requirements.", parameterType, name, v);
+                                    errors.addMessage("[ %s ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", actionType, parameterType, name, v);
                             });
                 });
 
