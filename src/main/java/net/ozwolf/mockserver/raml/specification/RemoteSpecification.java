@@ -51,7 +51,7 @@ public class RemoteSpecification extends RamlSpecification {
             File specificationFile = handler.handle(file);
 
             ResourceLoader loader = new FileResourceLoader(specificationFile.getParent());
-            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(specificationFile), specificationFile.getParent());
+            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(specificationFile), "/");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

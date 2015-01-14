@@ -48,7 +48,7 @@ public class FilePathSpecification extends RamlSpecification {
                 throw new IllegalArgumentException(String.format("[ %s ] is not a file.", file.getPath()));
 
             ResourceLoader loader = new FileResourceLoader(file.getParent());
-            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(file), file.getParent());
+            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(file), "/");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

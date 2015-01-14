@@ -1,4 +1,10 @@
-RAML Mock Server
+# RAML Mock Server
+
+#### Build Status
+
+[![Build Status](https://travis-ci.org/ozwolf-software/raml-mock-server.svg?branch=master)](https://travis-ci.org/ozwolf-software/raml-mock-server)
+
+## Description
 
 This tool is designed to allow validation of RAML API specifications against your own descriptors in a MockServer setup.
 
