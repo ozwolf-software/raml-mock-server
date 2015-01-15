@@ -32,6 +32,7 @@ public abstract class RamlSpecification {
 
     /**
      * Create the specification using the given name.
+     *
      * @param name The specification name.
      */
     public RamlSpecification(String name) {
@@ -51,12 +52,27 @@ public abstract class RamlSpecification {
     }
 
     /**
-     * Determine if the given `MockServer` location has obeyed the RAML API specifications.
+     * Determine if the given `MockServer` location has obeyed the RAML API specifications.  Allows `ObeyMode.SAFE_ERRORS` responses to be used.
+     *
      * @param client The `MockServer` client
      * @return The result of the expectation validations.
      * @throws java.lang.IllegalStateException If the specification has not been initialized.
+     * @see ResponseObeyMode
      */
     public Result obeyedBy(MockServerClient client) {
+        return this.obeyedBy(client, ResponseObeyMode.SAFE_ERRORS);
+    }
+
+    /**
+     * Determine if the given `MockServer` location has obeyed the RAML API specifications.
+     *
+     * @param client           The `MockServer` client
+     * @param responseObeyMode The level of obeying responses will adhere to.
+     * @return The result of the expectation validations.
+     * @throws java.lang.IllegalStateException If the specification has not been initialized.
+     * @see ResponseObeyMode
+     */
+    public Result obeyedBy(MockServerClient client, ResponseObeyMode responseObeyMode) {
         Raml raml = this.raml.orElseThrow(() -> new IllegalStateException(String.format("[ %s ] specification has not been initialized", name)));
         Result result = new Result();
         Arrays.asList(client.retrieveAsExpectations(null))
@@ -64,7 +80,7 @@ public abstract class RamlSpecification {
                 .map(e -> {
                     ApiSpecification specification = new ApiSpecification(raml);
                     ApiExpectation expectation = new ApiExpectation(specification, e);
-                    return new ExpectationValidator(expectation, getValidators(expectation)).validate();
+                    return new ExpectationValidator(expectation, getValidators(expectation, responseObeyMode)).validate();
                 })
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -76,10 +92,10 @@ public abstract class RamlSpecification {
     protected abstract Raml getRaml();
 
     @VisibleForTesting
-    protected Validator[] getValidators(ApiExpectation expectation) {
+    protected Validator[] getValidators(ApiExpectation expectation, ResponseObeyMode responseObeyMode) {
         return new Validator[]{
                 new RequestValidator(expectation),
-                new ResponseValidator(expectation)
+                new ResponseValidator(expectation, responseObeyMode)
         };
     }
 
@@ -97,6 +113,7 @@ public abstract class RamlSpecification {
 
         /**
          * Was the expectations valid.
+         *
          * @return Was the expectations valid.
          */
         public boolean isValid() {
@@ -105,6 +122,7 @@ public abstract class RamlSpecification {
 
         /**
          * Return the list of expectations in error.
+         *
          * @return The expectation errors.
          */
         public List<ExpectationError> getErrors() {
@@ -117,6 +135,7 @@ public abstract class RamlSpecification {
          * ```java
          * assertTrue(result.getFormattedErrorMessage(), result.isValid());
          * ```
+         *
          * @return The formatted error message
          */
         public String getFormattedErrorMessage() {

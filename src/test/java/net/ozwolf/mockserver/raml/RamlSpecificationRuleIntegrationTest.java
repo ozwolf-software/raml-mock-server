@@ -1,6 +1,7 @@
 package net.ozwolf.mockserver.raml;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import net.ozwolf.mockserver.raml.specification.ClassPathSpecification;
 import org.junit.ClassRule;
@@ -60,6 +61,38 @@ public class RamlSpecificationRuleIntegrationTest {
 
         assertFalse(result.isValid());
         assertThat(result.getFormattedErrorMessage(), is(fixture("fixtures/expected-obey-errors-get-hello-john.txt")));
+    }
+
+    @Test
+    public void shouldPassRamlRequirementsDueToAlwaysAllowedResponseCode(){
+        MockServerClient mockClient = new MockServerClient("localhost", 5000);
+
+        mockClient.when(
+                request()
+                        .withPath("/hello/John")
+                        .withMethod("GET")
+                        .withHeader(new Header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN))
+                        .withQueryStringParameter(new Parameter("my-token", "12345"))
+        ).respond(
+                response()
+                        .withStatusCode(503)
+        );
+
+        Client client = Client.create(new DefaultClientConfig());
+
+        ClientResponse response = client.resource("http://localhost:5000/hello/John")
+                .queryParam("my-token", "12345")
+                .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
+                .get(ClientResponse.class);
+        try {
+            assertThat(response.getStatus(), is(503));
+        } finally {
+            response.close();
+        }
+
+        RamlSpecification.Result result = SPECIFICATIONS.get("my-service").obeyedBy(mockClient);
+
+        assertTrue(result.getFormattedErrorMessage(), result.isValid());
     }
 
     @Test

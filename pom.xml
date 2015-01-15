@@ -6,7 +6,7 @@
 
     <groupId>net.ozwolf</groupId>
     <artifactId>raml-mock-server</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>RAML Mock Server</name>
     <description>This is a server for validating MockServer expectations against a RAML specification.</description>
 

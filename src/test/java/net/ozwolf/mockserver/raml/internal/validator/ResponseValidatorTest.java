@@ -1,5 +1,6 @@
 package net.ozwolf.mockserver.raml.internal.validator;
 
+import net.ozwolf.mockserver.raml.ResponseObeyMode;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import org.apache.commons.lang.StringUtils;
@@ -20,8 +21,9 @@ public class ResponseValidatorTest {
     @Test
     public void shouldReturnErrorWhenNoValidResponseExists() {
         when(expectation.hasValidResponse()).thenReturn(false);
+        when(expectation.getResponseStatusCode()).thenReturn(200);
 
-        ValidationErrors errors = new ResponseValidator(expectation).validate();
+        ValidationErrors errors = new ResponseValidator(expectation, ResponseObeyMode.STRICT).validate();
 
         assertThat(errors.isInError(), is(true));
         assertThat(errors.getMessages().size(), is(1));
@@ -29,7 +31,17 @@ public class ResponseValidatorTest {
     }
 
     @Test
-    public void shouldRunValidatorsAndReturnErrors(){
+    public void shouldReturnZeroErrorsWhenNoResponseFoundButResponseCodeIsAllowed() {
+        when(expectation.hasValidResponse()).thenReturn(false);
+        when(expectation.getResponseStatusCode()).thenReturn(404);
+
+        ValidationErrors errors = new ResponseValidator(expectation, ResponseObeyMode.SAFE_ERRORS).validate();
+
+        assertThat(errors.isInError(), is(false));
+    }
+
+    @Test
+    public void shouldRunValidatorsAndReturnErrors() {
         Validator validator1 = validator("This is an error!");
         Validator validator2 = validator(null);
         Validator validator3 = validator("And this is another error!");
@@ -59,7 +71,7 @@ public class ResponseValidatorTest {
         private final List<Validator> validators;
 
         public MyTestValidator(ApiExpectation expectation, Validator... validators) {
-            super(expectation);
+            super(expectation, ResponseObeyMode.SAFE_ERRORS);
             this.validators = newArrayList(validators);
         }
 
