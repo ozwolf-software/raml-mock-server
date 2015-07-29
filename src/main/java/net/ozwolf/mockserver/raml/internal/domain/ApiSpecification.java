@@ -8,8 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
+import static java.util.Optional.*;
 
 public class ApiSpecification {
     private final Raml raml;
@@ -26,7 +25,7 @@ public class ApiSpecification {
         Optional<Resource> resource = getResourceFor(expectation);
         if (!resource.isPresent())
             return empty();
-        return of(resource.get().getAction(expectation.getMethod()));
+        return ofNullable(resource.get().getAction(expectation.getMethod()));
     }
 
     public Optional<Response> getResponseFor(ApiExpectation expectation) {

@@ -30,6 +30,8 @@ public abstract class RamlSpecification {
 
     private Optional<Raml> raml;
 
+    private final static List<String> DEFAULT_METHODS_TO_CHECK = newArrayList("GET", "DELETE", "POST", "PUT");
+
     /**
      * Create the specification using the given name.
      *
@@ -54,13 +56,14 @@ public abstract class RamlSpecification {
     /**
      * Determine if the given `MockServer` location has obeyed the RAML API specifications.  Allows `ObeyMode.SAFE_ERRORS` responses to be used.
      *
-     * @param client The `MockServer` client
+     * @param client           The `MockServer` client
+     * @param alsoCheckMethods By default, only GET, POST, PUT and DELETE methods are checked.  Add HEAD, OPTIONS, etc. if needed here.
      * @return The result of the expectation validations.
      * @throws java.lang.IllegalStateException If the specification has not been initialized.
      * @see ResponseObeyMode
      */
-    public Result obeyedBy(MockServerClient client) {
-        return this.obeyedBy(client, ResponseObeyMode.SAFE_ERRORS);
+    public Result obeyedBy(MockServerClient client, String... alsoCheckMethods) {
+        return this.obeyedBy(client, ResponseObeyMode.SAFE_ERRORS, alsoCheckMethods);
     }
 
     /**
@@ -68,18 +71,25 @@ public abstract class RamlSpecification {
      *
      * @param client           The `MockServer` client
      * @param responseObeyMode The level of obeying responses will adhere to.
+     * @param alsoCheckMethods By default, only GET, POST, PUT and DELETE methods are checked.  Add HEAD, OPTIONS, etc. if needed here.
      * @return The result of the expectation validations.
      * @throws java.lang.IllegalStateException If the specification has not been initialized.
      * @see ResponseObeyMode
      */
-    public Result obeyedBy(MockServerClient client, ResponseObeyMode responseObeyMode) {
+    public Result obeyedBy(MockServerClient client, ResponseObeyMode responseObeyMode, String... alsoCheckMethods) {
         Raml raml = this.raml.orElseThrow(() -> new IllegalStateException(String.format("[ %s ] specification has not been initialized", name)));
         Result result = new Result();
+        List<String> methodsToCheck = newArrayList(DEFAULT_METHODS_TO_CHECK);
+        methodsToCheck.addAll(newArrayList(alsoCheckMethods));
+
         Arrays.asList(client.retrieveAsExpectations(null))
                 .stream()
                 .map(e -> {
                     ApiSpecification specification = new ApiSpecification(raml);
                     ApiExpectation expectation = new ApiExpectation(specification, e);
+                    if (!methodsToCheck.contains(expectation.getMethod()))
+                        return Optional.<ExpectationError>empty();
+
                     return new ExpectationValidator(expectation, getValidators(expectation, responseObeyMode)).validate();
                 })
                 .filter(Optional::isPresent)

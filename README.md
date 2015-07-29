@@ -24,6 +24,12 @@ To use the library, clone it locally and then do the following:
 This library currently validates specified request and response content if the `Content-Type` header is compatible with `application/json` and if the RAML specification has an appropriate schema defined for the content.
 
 This validation is provided by the [JSON Schema Validator](https://github.com/fge/json-schema-validator) tool.
+
+## Methods To Check
+
+By default, the `obeyedBy` check will only check interactions on `GET`, `POST`, `PUT` and `DELETE` methods.  If you want to include other interactions such as `HEAD`, `OPTIONS`, etc., then simply include those in the `obeyedBy` call.
+
+For example, `.obeyedBy(client, "HEAD", "OPTIONS")`
     
 ## Examples
 
