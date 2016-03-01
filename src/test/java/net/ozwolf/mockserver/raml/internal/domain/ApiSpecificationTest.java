@@ -1,5 +1,7 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 import org.raml.model.*;
 import org.raml.parser.visitor.RamlDocumentBuilder;
@@ -9,6 +11,7 @@ import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +22,7 @@ public class ApiSpecificationTest {
     public void shouldReturnResourceForProvidedExpectation() {
         ApiExpectation expectation = mock(ApiExpectation.class);
         when(expectation.getUri()).thenReturn("/hello/John");
+        when(expectation.isExpectationFor(argThat(isResourceFor("/hello/{name}")))).thenReturn(true);
 
         Optional<Resource> resource = SPECIFICATION.getResourceFor(expectation);
 
@@ -31,6 +35,7 @@ public class ApiSpecificationTest {
         ApiExpectation expectation = mock(ApiExpectation.class);
         when(expectation.getUri()).thenReturn("/hello/John");
         when(expectation.getMethod()).thenReturn("GET");
+        when(expectation.isExpectationFor(argThat(isResourceFor("/hello/{name}")))).thenReturn(true);
 
         Optional<Action> action = SPECIFICATION.getActionFor(expectation);
 
@@ -45,6 +50,7 @@ public class ApiSpecificationTest {
         when(expectation.getMethod()).thenReturn("GET");
         when(expectation.getResponseStatusCode()).thenReturn(200);
         when(expectation.getResponseContentType()).thenReturn(MediaType.TEXT_PLAIN_TYPE);
+        when(expectation.isExpectationFor(argThat(isResourceFor("/hello/{name}")))).thenReturn(true);
 
         Optional<Response> response = SPECIFICATION.getResponseFor(expectation);
 
@@ -58,6 +64,7 @@ public class ApiSpecificationTest {
         when(expectation.getUri()).thenReturn("/hello/John/greetings");
         when(expectation.getMethod()).thenReturn("PUT");
         when(expectation.getRequestContentType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
+        when(expectation.isExpectationFor(argThat(isResourceFor("/hello/{name}/greetings")))).thenReturn(true);
 
         Optional<MimeType> body = SPECIFICATION.getRequestBodyFor(expectation);
 
@@ -68,5 +75,24 @@ public class ApiSpecificationTest {
     @Test
     public void shouldReturnSpecifiedSecurityScheme() {
         assertThat(SPECIFICATION.getSecurityScheme(new SecurityReference("my-token")).getDescription(), is("basic custom token"));
+    }
+
+    private static TypeSafeMatcher<Resource> isResourceFor(String uri){
+        return new TypeSafeMatcher<Resource>() {
+            @Override
+            protected boolean matchesSafely(Resource resource) {
+                return resource.getUri().equals(uri);
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText(String.format("[ uri = <%s> ]", uri));
+            }
+
+            @Override
+            protected void describeMismatchSafely(Resource item, Description mismatchDescription) {
+                mismatchDescription.appendText(String.format("[ uri = <%s> ]", item.getUri()));
+            }
+        };
     }
 }

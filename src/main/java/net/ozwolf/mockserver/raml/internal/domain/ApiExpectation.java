@@ -1,5 +1,9 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
+import com.damnhandy.uri.template.Expression;
+import com.damnhandy.uri.template.Literal;
+import com.damnhandy.uri.template.UriTemplateComponent;
+import com.damnhandy.uri.template.impl.UriTemplateParser;
 import net.ozwolf.mockserver.raml.exception.NoValidActionException;
 import net.ozwolf.mockserver.raml.exception.NoValidResourceException;
 import net.ozwolf.mockserver.raml.internal.domain.body.DefaultBodySpecification;
@@ -11,15 +15,14 @@ import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 import org.mockserver.model.Parameter;
 import org.raml.model.*;
+import org.raml.model.parameter.UriParameter;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 
 public class ApiExpectation {
     private final ApiSpecification specification;
@@ -62,6 +65,36 @@ public class ApiExpectation {
 
     public String getMethod() {
         return request.getMethod();
+    }
+
+    public boolean isExpectationFor(Resource resource) {
+        List<String> uriValues = Arrays.asList(StringUtils.split(request.getPath(), "/"));
+        List<UriTemplateComponent> uriComponents = new UriTemplateParser().scan(resource.getUri());
+
+        if (uriValues.size() != uriComponents.size())
+            return false;
+
+        Map<UriTemplateComponent, String> componentValues = newHashMap();
+        for (int i = 0; i < uriComponents.size(); i++)
+            componentValues.put(uriComponents.get(i), uriValues.get(i));
+
+        Map<String, UriParameter> parameters = newHashMap();
+        resource.getResolvedUriParameters().entrySet()
+                .stream()
+                .forEach(e -> parameters.put(String.format("{%s}", e.getKey()), e.getValue()));
+
+        return componentValues.entrySet()
+                .stream()
+                .allMatch(e -> {
+                    UriTemplateComponent component = e.getKey();
+                    String value = e.getValue();
+
+                    if (component instanceof Literal) {
+                        return StringUtils.replace(component.getValue(), "/", "").equals(value);
+                    } else {
+                        return parameters.containsKey(component.getValue());
+                    }
+                });
     }
 
     public Optional<Header> getRequestHeader(String name) {

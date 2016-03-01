@@ -1,9 +1,8 @@
 package net.ozwolf.mockserver.raml;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
 import net.ozwolf.mockserver.raml.specification.ClassPathSpecification;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,8 +11,11 @@ import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.Header;
 import org.mockserver.model.Parameter;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.fixture;
@@ -50,9 +52,10 @@ public class RamlSpecificationRuleIntegrationTest {
                         .withBody("Hello John!")
         );
 
-        Client client = Client.create(new DefaultClientConfig());
+        Client client = new JerseyClientBuilder().withConfig(new ClientConfig()).build();
 
-        String response = client.resource("http://localhost:5000/hello/John")
+        String response = client.target("http://localhost:5000/hello/John")
+                .request()
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
                 .get(String.class);
         assertThat(response, is("Hello John!"));
@@ -64,7 +67,7 @@ public class RamlSpecificationRuleIntegrationTest {
     }
 
     @Test
-    public void shouldPassRamlRequirementsDueToAlwaysAllowedResponseCode(){
+    public void shouldPassRamlRequirementsDueToAlwaysAllowedResponseCode() {
         MockServerClient mockClient = new MockServerClient("localhost", 5000);
 
         mockClient.when(
@@ -78,12 +81,13 @@ public class RamlSpecificationRuleIntegrationTest {
                         .withStatusCode(503)
         );
 
-        Client client = Client.create(new DefaultClientConfig());
+        Client client = new JerseyClientBuilder().withConfig(new ClientConfig()).build();
 
-        ClientResponse response = client.resource("http://localhost:5000/hello/John")
+        Response response = client.target("http://localhost:5000/hello/John")
                 .queryParam("my-token", "12345")
+                .request()
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
-                .get(ClientResponse.class);
+                .get();
         try {
             assertThat(response.getStatus(), is(503));
         } finally {
@@ -115,10 +119,11 @@ public class RamlSpecificationRuleIntegrationTest {
                         .withBody("Hello John!")
         );
 
-        Client client = Client.create(new DefaultClientConfig());
+        Client client = new JerseyClientBuilder().withConfig(new ClientConfig()).build();
 
-        String response = client.resource("http://localhost:5000/hello/John")
+        String response = client.target("http://localhost:5000/hello/John")
                 .queryParam("my-token", "12345")
+                .request()
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
                 .get(String.class);
         assertThat(response, is("Hello John!"));
@@ -150,14 +155,13 @@ public class RamlSpecificationRuleIntegrationTest {
                         .withBody(fixture("fixtures/incorrect-greetings-response.json"))
         );
 
-        Client client = Client.create(new DefaultClientConfig());
+        Client client = new JerseyClientBuilder().withConfig(new ClientConfig()).build();
 
-        String response = client.resource("http://localhost:5000/hello/Sarah/greetings")
+        String response = client.target("http://localhost:5000/hello/Sarah/greetings")
+                .request()
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Basic TOKEN1234")
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .entity(fixture("fixtures/incorrect-greeting-request.json"))
-                .put(String.class);
+                .put(Entity.entity(fixture("fixtures/incorrect-greeting-request.json"), "application/json"), String.class);
         assertThat(response, is(fixture("fixtures/incorrect-greetings-response.json")));
 
         RamlSpecification.Result result = SPECIFICATIONS.get("my-service").obeyedBy(mockClient);

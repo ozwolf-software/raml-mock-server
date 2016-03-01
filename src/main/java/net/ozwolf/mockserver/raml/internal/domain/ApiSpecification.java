@@ -1,10 +1,8 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
-import com.sun.jersey.api.uri.UriTemplate;
 import org.raml.model.*;
 
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,7 +16,7 @@ public class ApiSpecification {
     }
 
     public Optional<Resource> getResourceFor(ApiExpectation expectation) {
-        return findResourceIn(expectation.getUri(), raml.getResources());
+        return findResourceIn(expectation, raml.getResources());
     }
 
     public Optional<Action> getActionFor(ApiExpectation expectation) {
@@ -68,15 +66,16 @@ public class ApiSpecification {
                 .get();
     }
 
-    private Optional<Resource> findResourceIn(String uri, Map<String, Resource> resources) {
+    private Optional<Resource> findResourceIn(ApiExpectation expectation, Map<String, Resource> resources) {
         return resources.entrySet().stream()
                 .map(e -> {
-                    if (new UriTemplate(e.getValue().getUri()).match(uri, new HashMap<>()))
+                    if (expectation.isExpectationFor(e.getValue()))
                         return of(e.getValue());
 
                     Map<String, Resource> children = e.getValue().getResources();
+
                     if (children != null)
-                        return findResourceIn(uri, children);
+                        return findResourceIn(expectation, children);
 
                     return Optional.<Resource>empty();
                 })
