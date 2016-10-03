@@ -7,8 +7,10 @@ import net.ozwolf.mockserver.raml.internal.domain.body.JsonBodySpecification;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockserver.matchers.TimeToLive;
 import org.mockserver.mock.Expectation;
 import org.mockserver.model.Header;
+import org.mockserver.model.NottableString;
 import org.mockserver.model.Parameter;
 import org.raml.model.Action;
 import org.raml.model.Resource;
@@ -30,6 +32,7 @@ import static org.mockserver.matchers.Times.once;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ApiExpectationTest {
     private final static ApiSpecification SPECIFICATION = new ApiSpecification(new RamlDocumentBuilder().build("apispecs-test/apispecs.raml"));
     private final static Expectation MOCK_GET_EXPECTATION = new Expectation(
@@ -40,7 +43,8 @@ public class ApiExpectationTest {
                             new Header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                     )
                     .withQueryStringParameter(new Parameter("ttl", "30s")),
-            once()
+            once(),
+            TimeToLive.unlimited()
     ).thenRespond(
             response()
                     .withStatusCode(200)
@@ -57,7 +61,8 @@ public class ApiExpectationTest {
                             new Header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
                     )
                     .withBody("Why hello there {name}"),
-            once()
+            once(),
+            TimeToLive.unlimited()
     ).thenRespond(
             response()
                     .withStatusCode(200)
@@ -81,7 +86,7 @@ public class ApiExpectationTest {
         assertThat(GET_EXPECTATION.getRequestHeader("wrong").isPresent(), is(false));
         assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).isPresent(), is(true));
         assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues(), hasItem(MediaType.APPLICATION_JSON));
+        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues(), hasItem(NottableString.string(MediaType.APPLICATION_JSON)));
     }
 
     @Test
@@ -89,7 +94,7 @@ public class ApiExpectationTest {
         assertThat(GET_EXPECTATION.getResponseHeader("wrong").isPresent(), is(false));
         assertThat(GET_EXPECTATION.getResponseHeader("ttl").isPresent(), is(true));
         assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues(), hasItem("30s"));
+        assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues(), hasItem(NottableString.string("30s")));
     }
 
     @Test
@@ -97,7 +102,7 @@ public class ApiExpectationTest {
         assertThat(GET_EXPECTATION.getQueryParameter("wrong").isPresent(), is(false));
         assertThat(GET_EXPECTATION.getQueryParameter("ttl").isPresent(), is(true));
         assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues(), hasItem("30s"));
+        assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues(), hasItem(NottableString.string("30s")));
     }
 
     @Test

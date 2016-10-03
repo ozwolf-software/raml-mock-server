@@ -28,7 +28,7 @@ import static org.mockserver.model.HttpResponse.response;
 
 public class RamlSpecificationRuleIntegrationTest {
     @Rule
-    public MockServerRule server = new MockServerRule(5000, this);
+    public MockServerRule server = new MockServerRule(this, 5000);
 
     @ClassRule
     public final static RamlSpecificationsRule SPECIFICATIONS = new RamlSpecificationsRule()

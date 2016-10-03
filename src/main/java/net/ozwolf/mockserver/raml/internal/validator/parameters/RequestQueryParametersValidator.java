@@ -1,6 +1,7 @@
 package net.ozwolf.mockserver.raml.internal.validator.parameters;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
+import org.mockserver.model.NottableString;
 import org.mockserver.model.Parameter;
 import org.raml.model.parameter.AbstractParam;
 import org.raml.model.parameter.QueryParameter;
@@ -8,6 +9,8 @@ import org.raml.model.parameter.QueryParameter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 public class RequestQueryParametersValidator extends ParametersValidator {
     private final static Parameter EMPTY_PARAMETER = new Parameter("");
@@ -26,7 +29,7 @@ public class RequestQueryParametersValidator extends ParametersValidator {
     }
 
     @Override
-    protected List<String> getValues(String parameterName) {
+    protected List<NottableString> getValues(String parameterName) {
         return expectation().getQueryParameter(parameterName)
                 .orElse(EMPTY_PARAMETER)
                 .getValues();

@@ -1,6 +1,5 @@
 package net.ozwolf.mockserver.raml.internal.domain;
 
-import com.damnhandy.uri.template.Expression;
 import com.damnhandy.uri.template.Literal;
 import com.damnhandy.uri.template.UriTemplateComponent;
 import com.damnhandy.uri.template.impl.UriTemplateParser;
@@ -60,15 +59,15 @@ public class ApiExpectation {
     }
 
     public String getUri() {
-        return this.request.getPath();
+        return this.request.getPath().getValue();
     }
 
     public String getMethod() {
-        return request.getMethod();
+        return request.getMethod().getValue();
     }
 
     public boolean isExpectationFor(Resource resource) {
-        List<String> uriValues = Arrays.asList(StringUtils.split(request.getPath(), "/"));
+        List<String> uriValues = Arrays.asList(StringUtils.split(request.getPath().getValue(), "/"));
         List<UriTemplateComponent> uriComponents = new UriTemplateParser().scan(resource.getUri());
 
         if (uriValues.size() != uriComponents.size())
@@ -99,26 +98,26 @@ public class ApiExpectation {
 
     public Optional<Header> getRequestHeader(String name) {
         return request.getHeaders().stream()
-                .filter(h -> h.getName().equals(name))
+                .filter(h -> h.getName().getValue().equals(name))
                 .findFirst();
     }
 
     public Optional<Header> getResponseHeader(String name) {
         return response.getHeaders().stream()
-                .filter(h -> h.getName().equals(name))
+                .filter(h -> h.getName().getValue().equals(name))
                 .findFirst();
     }
 
     public Optional<Parameter> getQueryParameter(String name) {
         return request.getQueryStringParameters().stream()
-                .filter(p -> p.getName().equals(name))
+                .filter(p -> p.getName().getValue().equals(name))
                 .findFirst();
     }
 
     public String getUriValueOf(String parameterName) {
         String uri = getResource().orElseThrow(() -> new NoValidResourceException(this)).getUri();
         List<String> uriParts = newArrayList(StringUtils.split(uri, "/"));
-        List<String> pathParts = newArrayList(StringUtils.split(request.getPath(), "/"));
+        List<String> pathParts = newArrayList(StringUtils.split(request.getPath().getValue(), "/"));
 
         int parameterIndex = uriParts.indexOf(String.format("{%s}", parameterName));
         return pathParts.get(parameterIndex);
@@ -138,6 +137,7 @@ public class ApiExpectation {
                         .orElse(new Header(HttpHeaders.CONTENT_TYPE, MediaType.WILDCARD))
                         .getValues()
                         .get(0)
+                        .getValue()
         );
     }
 
@@ -147,6 +147,7 @@ public class ApiExpectation {
                         .orElse(new Header(HttpHeaders.CONTENT_TYPE, MediaType.WILDCARD))
                         .getValues()
                         .get(0)
+                        .getValue()
         );
     }
 

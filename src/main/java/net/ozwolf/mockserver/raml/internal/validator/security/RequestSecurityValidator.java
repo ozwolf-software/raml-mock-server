@@ -87,8 +87,8 @@ public class RequestSecurityValidator implements Validator {
 
         parameter.getValues().stream()
                 .forEach(v -> {
-                    if (!specification.validate(v))
-                        errors.addMessage("[ security ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", parameterType, name, v);
+                    if (!specification.validate(v.getValue()))
+                        errors.addMessage("[ security ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", parameterType, name, v.getValue());
                 });
 
         return errors;

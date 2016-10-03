@@ -82,7 +82,7 @@ public abstract class RamlSpecification {
         List<String> methodsToCheck = newArrayList(DEFAULT_METHODS_TO_CHECK);
         methodsToCheck.addAll(newArrayList(alsoCheckMethods));
 
-        Arrays.asList(client.retrieveAsExpectations(null))
+        Arrays.asList(client.retrieveExistingExpectations(null))
                 .stream()
                 .map(e -> {
                     ApiSpecification specification = new ApiSpecification(raml);

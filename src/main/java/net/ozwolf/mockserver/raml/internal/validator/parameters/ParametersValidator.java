@@ -4,6 +4,7 @@ import net.ozwolf.mockserver.raml.exception.NoValidActionException;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.validator.Validator;
+import org.mockserver.model.NottableString;
 import org.raml.model.parameter.AbstractParam;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public abstract class ParametersValidator implements Validator {
                 .forEach(p -> {
                     String name = p.getKey();
                     AbstractParam parameter = p.getValue();
-                    List<String> values = getValues(p.getKey());
+                    List<NottableString> values = getValues(p.getKey());
 
                     if (!parameter.isRequired() && values.isEmpty())
                         return;
@@ -49,8 +50,8 @@ public abstract class ParametersValidator implements Validator {
 
                     values.stream()
                             .forEach(v -> {
-                                if (!parameter.validate(v))
-                                    errors.addMessage("[ %s ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", actionType, parameterType, name, v);
+                                if (!parameter.validate(v.getValue()))
+                                    errors.addMessage("[ %s ] [ %s ] [ %s ] Value of [ %s ] does not meet API requirements.", actionType, parameterType, name, v.getValue());
                             });
                 });
 
@@ -63,5 +64,5 @@ public abstract class ParametersValidator implements Validator {
 
     protected abstract Map<String, ? extends AbstractParam> getParameters();
 
-    protected abstract List<String> getValues(String parameterName);
+    protected abstract List<NottableString> getValues(String parameterName);
 }
