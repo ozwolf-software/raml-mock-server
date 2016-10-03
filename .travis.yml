@@ -1,7 +1,22 @@
 language: java
-script: mvn clean verify
 jdk:
-    - oraclejdk8
+- oraclejdk8
 notifications:
-    email:
-        - ozwolf@gmail.com
+  email:
+  - ozwolf@gmail.com
+
+env:
+  global:
+  - GPG_DIR="`pwd`/gpg"
+  - secure: LStPfM5jsirxrcgrtjLAc2amwIoXNBw7FELcMdrU24yHMv4ymfC4geMxpOP42YOq3iSu82flvxKdOycWZK7KQ+a9aCndjLlBKyJO2Uvq8o0ner+C/mjJi6tHaesyR/WvNRzmzkCz7kECyq8Yj2MZokCO1DZyjwoQWbO+lx+KY0k=
+  - secure: Fm4tAKceD+mHFc/Cj7xRyKvA2ZxsOP/mMm3DUBW673J+Bh9Sdwl0lzGkK3WnJX+Mi3vdjSqKTHfWXH1Y0ze4yQ8PAIsLxtpP/4F+eKANhTNqrgKbiJWeU+B5oDMykqilw7QfiiUwkReI/+scXZd7gL8BimLsP5DQg/nLYuj4cO0=
+  - secure: ZIpM8XNTg/ZOEqfrSWRTqAzL0ntWMF8BvPa320WxE4HJgi5XkIXkL44uRkEI4hb31yMsIT6XLiczgHDOgNFVu6ZhT4bnUk7emdfHXs00FD3Quh5L3kS3W+V7Ahl5Q3e+RF+MUXFIX/sLzek08FeZTl6f77O5RNuRCUzv9GKiujk=
+  - secure: CnYfqVXx23U4jV68USpURjdhFuMW+ad1PuNaAJIOrUQidM67zziQHhsv+BSEBiBEpGRvGZ5r+tsaIbtuLD/ra0V10m/8v0MzjxM9TqoTc40HCBF6jb2E25fhsBX8hFdvTEw+oCHQyAUsrn9IgQsQheuNc52PNKJ3VtFa+ZrZDj8=
+  - secure: UwNsKXQJBvzqdmdZmL2cnIxQ5Fb7wnK2Bczl2Y5y4Snksw/Bjv7ZIKxYLRUPpYHocjpBQvwa6C+ch9ow8ii8C8fFhPbzbhR0RGry1+HAnAIf3UHvNR38dySlBSvp9pI6aLNI1IoSIpenfNfgxhcdLQw17ByzT4qOI4IHZeweHo8=
+
+before_script:
+  - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/pubring.gpg.enc -out $GPG_DIR/pubring.gpg -d
+  - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in $GPG_DIR/secring.gpg.enc -out $GPG_DIR/secring.gpg -d
+
+script:
+  - mvn -P ossrh clean source:jar deploy --settings travis-settings.xml
