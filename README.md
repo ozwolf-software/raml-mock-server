@@ -10,14 +10,17 @@ This tool is designed to allow validation of RAML API specifications against you
 
 Utilising both the `MockServer` toolset and the `RAML Java Parser`, it provides abilities to define RAML specifications that you can ensure that `MockServer` Expectations that are hit actually meet the API specifications specified by the remote service.
 
-## Compile and Install
+## Dependency
 
-To use the library, clone it locally and then do the following:
+```xml
+<dependency>
+    <groupId>net.ozwolf</groupId>
+    <artifactId>raml-mock-server</artifactId>
+    <version>2.1.0</version>
+</dependency>
+```
 
-+ Local Repository - `mvn clean install`
-+ Your Shared Repository
-    + Manual Upload - `mvn clean package` then upload the JAR and JavaDoc JAR from `/target`
-    + Person Central Repository in Maven `settings.xml` - `mvn clean deploy`
+
     
 ## Content Validation
 
