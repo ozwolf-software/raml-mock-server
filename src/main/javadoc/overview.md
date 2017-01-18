@@ -4,20 +4,31 @@ This tool is designed to allow validation of RAML API specifications against you
 
 Utilising both the `MockServer` toolset and the `RAML Java Parser`, it provides abilities to define RAML specifications that you can ensure that `MockServer` Expectations that are hit actually meet the API specifications specified by the remote service.
 
-## Compile and Install
+## Supported RAML Versions
 
-To use the library, clone it locally and then do the following:
+Currently, this library supports RAML 0.8 only.
 
-+ Local Repository - `mvn clean install`
-+ Your Shared Repository
-    + Manual Upload - `mvn clean package` then upload the JAR and JavaDoc JAR from `/target`
-    + Person Central Repository in Maven `settings.xml` - `mvn clean deploy`
+## Dependency
+
+```xml
+<dependency>
+    <groupId>net.ozwolf</groupId>
+    <artifactId>raml-mock-server</artifactId>
+    <version>${current.version}</version>
+</dependency>
+```
     
 ## Content Validation
 
 This library currently validates specified request and response content if the `Content-Type` header is compatible with `application/json` and if the RAML specification has an appropriate schema defined for the content.
 
 This validation is provided by the [JSON Schema Validator](https://github.com/fge/json-schema-validator) tool.
+
+## Methods To Check
+
+By default, the `obeyedBy` check will only check interactions on `GET`, `POST`, `PUT` and `DELETE` methods.  If you want to include other interactions such as `HEAD`, `OPTIONS`, etc., then simply include those in the `obeyedBy` call.
+
+For example, `.obeyedBy(client, "HEAD", "OPTIONS")`
     
 ## Examples
 

@@ -9,6 +9,7 @@ import org.raml.parser.loader.ResourceLoader;
 import org.raml.parser.visitor.RamlDocumentBuilder;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 
@@ -51,7 +52,7 @@ public class RemoteSpecification extends RamlSpecification {
             File specificationFile = handler.handle(file);
 
             ResourceLoader loader = new FileResourceLoader(specificationFile.getParent());
-            return new RamlDocumentBuilder(loader).build(FileUtils.readFileToString(specificationFile), "/");
+            return new RamlDocumentBuilder(loader).build(new FileInputStream(specificationFile), specificationFile.getAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

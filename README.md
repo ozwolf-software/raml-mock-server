@@ -1,7 +1,5 @@
 # RAML Mock Server
 
-#### Build Status
-
 [![Travis](https://img.shields.io/travis/ozwolf-software/raml-mock-server.svg?style=flat-square)](https://travis-ci.org/ozwolf-software/raml-mock-server)
 [![Maven Central](https://img.shields.io/maven-central/v/net.ozwolf/raml-mock-server.svg?style=flat-square)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22net.ozwolf%22%20AND%20a%3A%22raml-mock-server%22)
 [![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
@@ -14,7 +12,7 @@ Utilising both the `MockServer` toolset and the `RAML Java Parser`, it provides 
 
 ## Supported RAML Versions
 
-Currently, this library is 
+Currently, this library supports RAML 0.8 only.
 
 ## Dependency
 
