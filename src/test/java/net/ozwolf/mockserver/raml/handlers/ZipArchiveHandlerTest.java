@@ -8,8 +8,7 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.zipFixture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -25,7 +24,7 @@ public class ZipArchiveHandlerTest {
 
         File result = ZipArchiveHandler.handler(targetDirectory.getPath(), specificationFile.getName()).handle(zip);
 
-        assertThat(result, is(specificationFile));
+        assertThat(result).isEqualTo(specificationFile);
     }
 
     @Test

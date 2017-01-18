@@ -13,9 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,9 +42,10 @@ public class RequestUriParametersValidatorTest {
 
         ValidationErrors errors = new RequestUriParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ uri ] [ ttl ] Value of [ i_am_text ] does not meet API requirements."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] [ uri ] [ ttl ] Value of [ i_am_text ] does not meet API requirements.");
     }
 
     private Map<String, UriParameter> uriParameter(boolean required, boolean repeatable) {

@@ -8,8 +8,7 @@ import org.raml.model.Raml;
 import java.io.File;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.zipFixture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RemoteSpecificationTest {
     @Test
@@ -22,6 +21,6 @@ public class RemoteSpecificationTest {
 
         Raml raml = specification.getRaml();
 
-        assertThat(raml.getResources().get("/hello/{name}").getDisplayName(), is("Hello Greeting"));
+        assertThat(raml.getResources().get("/hello/{name}").getDisplayName()).isEqualTo("Hello Greeting");
     }
 }

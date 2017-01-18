@@ -2,7 +2,9 @@
 
 #### Build Status
 
-[![Build Status](https://travis-ci.org/ozwolf-software/raml-mock-server.svg?branch=master)](https://travis-ci.org/ozwolf-software/raml-mock-server)
+[![Travis](https://img.shields.io/travis/ozwolf-software/raml-mock-server.svg?style=flat-square)](https://travis-ci.org/ozwolf-software/raml-mock-server)
+[![Maven Central](https://img.shields.io/maven-central/v/net.ozwolf/raml-mock-server.svg?style=flat-square)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22net.ozwolf%22%20AND%20a%3A%22raml-mock-server%22)
+[![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 ## Description
 
@@ -10,17 +12,19 @@ This tool is designed to allow validation of RAML API specifications against you
 
 Utilising both the `MockServer` toolset and the `RAML Java Parser`, it provides abilities to define RAML specifications that you can ensure that `MockServer` Expectations that are hit actually meet the API specifications specified by the remote service.
 
+## Supported RAML Versions
+
+Currently, this library is 
+
 ## Dependency
 
 ```xml
 <dependency>
     <groupId>net.ozwolf</groupId>
     <artifactId>raml-mock-server</artifactId>
-    <version>2.1.0</version>
+    <version>${current.version}</version>
 </dependency>
 ```
-
-
     
 ## Content Validation
 

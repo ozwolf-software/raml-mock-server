@@ -6,8 +6,7 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -23,8 +22,8 @@ public class RamlFileHandlerIntegrationTest {
 
         File result = RamlFileHandler.handler(targetDirectory.getPath()).handle(file);
 
-        assertThat(result, is(expectedFile));
-        assertThat(result.exists(), is(true));
+        assertThat(result).isEqualTo(expectedFile);
+        assertThat(result.exists()).isTrue();
     }
 
     @Test

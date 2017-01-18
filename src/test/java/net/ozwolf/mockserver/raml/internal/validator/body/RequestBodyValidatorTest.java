@@ -18,9 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.fixture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +37,7 @@ public class RequestBodyValidatorTest {
 
     @Test(expected = NoValidActionException.class)
     public void shouldThrowIllegalArgumentExceptionWhenNoActionFound() {
-        when(expectation.getAction()).thenReturn(Optional.<Action>empty());
+        when(expectation.getAction()).thenReturn(Optional.empty());
 
         new RequestBodyValidator(expectation).validate();
     }
@@ -50,19 +48,20 @@ public class RequestBodyValidatorTest {
 
         Validator validator = new RequestBodyValidator(expectation);
 
-        assertThat(validator.validate().isInError(), is(false));
+        assertThat(validator.validate().isInError()).isFalse();
     }
 
     @Test
     public void shouldReturnMissingBodyErrorWhenActionRequiresRequestBodyAndRequestDoesNotHaveIt() {
         when(action.hasBody()).thenReturn(true);
-        when(expectation.getRequestBody()).thenReturn(Optional.<String>empty());
+        when(expectation.getRequestBody()).thenReturn(Optional.empty());
 
         Validator validator = new RequestBodyValidator(expectation);
         ValidationErrors errors = validator.validate();
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] Has an expected request body but none provided."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] Has an expected request body but none provided.");
     }
 
     @Test
@@ -73,9 +72,10 @@ public class RequestBodyValidatorTest {
 
         Validator validator = new RequestBodyValidator(expectation);
         ValidationErrors errors = validator.validate();
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] Wildcard or no content type provided in request."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] Wildcard or no content type provided in request.");
     }
 
     @Test
@@ -83,12 +83,13 @@ public class RequestBodyValidatorTest {
         when(action.hasBody()).thenReturn(true);
         when(expectation.getRequestBody()).thenReturn(Optional.of(fixture("apispecs-test/examples/greeting-response.json")));
         when(expectation.getRequestContentType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
-        when(expectation.getRequestBodySpecification()).thenReturn(Optional.<BodySpecification>empty());
+        when(expectation.getRequestBodySpecification()).thenReturn(Optional.empty());
 
         Validator validator = new RequestBodyValidator(expectation);
         ValidationErrors errors = validator.validate();
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] No request specification exists for [ application/json ].  Acceptable content types are [ application/xml, text/plain ]"));
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] No request specification exists for [ application/json ].  Acceptable content types are [ application/xml, text/plain ]");
     }
 
     @Test
@@ -108,8 +109,9 @@ public class RequestBodyValidatorTest {
 
         Validator validator = new RequestBodyValidator(expectation);
         ValidationErrors errors = validator.validate();
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("Request Body: The content did not match the provided schema."));
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("Request Body: The content did not match the provided schema.");
     }
 
     private Map<String, MimeType> getContentTypes() {

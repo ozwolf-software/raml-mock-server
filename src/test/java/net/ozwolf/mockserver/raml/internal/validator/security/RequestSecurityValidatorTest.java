@@ -16,9 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +24,7 @@ public class RequestSecurityValidatorTest {
     private final ApiExpectation expectation = mock(ApiExpectation.class);
 
     @Before
-    public void setUp(){
+    public void setUp() {
         Map<String, SecurityScheme> security = getSecurity();
         when(expectation.getSecuritySpecification()).thenReturn(security);
     }
@@ -37,23 +35,24 @@ public class RequestSecurityValidatorTest {
 
         ValidationErrors errors = new RequestSecurityValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
     public void shouldReturnErrorThatSecurityIsMissing() {
-        when(expectation.getRequestHeader(HttpHeaders.AUTHORIZATION)).thenReturn(Optional.<org.mockserver.model.Header>empty());
-        when(expectation.getQueryParameter("token")).thenReturn(Optional.<Parameter>empty());
+        when(expectation.getRequestHeader(HttpHeaders.AUTHORIZATION)).thenReturn(Optional.empty());
+        when(expectation.getQueryParameter("token")).thenReturn(Optional.empty());
 
         ValidationErrors errors = new RequestSecurityValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ security ] Missing required security credentials.  Must use one of [ query-token, basic ]."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains(("[ request ] [ security ] Missing required security credentials.  Must use one of [ query-token, basic ]."));
     }
 
     @Test
-    public void shouldReturnErrorsForBrokenSecuritySpecifications(){
+    public void shouldReturnErrorsForBrokenSecuritySpecifications() {
         org.mockserver.model.Header authorizationHeader = new org.mockserver.model.Header(HttpHeaders.AUTHORIZATION, "Basic 1234", "wrong");
         Parameter tokenParameter = new Parameter("token", "123456", "i_am_text");
 
@@ -62,12 +61,15 @@ public class RequestSecurityValidatorTest {
 
         ValidationErrors errors = new RequestSecurityValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(4));
-        assertThat(errors.getMessages(), hasItem("[ security ] [ header ] [ basic ] Only one value allowed for security parameters but multiple found."));
-        assertThat(errors.getMessages(), hasItem("[ security ] [ header ] [ basic ] Value of [ wrong ] does not meet API requirements."));
-        assertThat(errors.getMessages(), hasItem("[ security ] [ query ] [ query-token ] Only one value allowed for security parameters but multiple found."));
-        assertThat(errors.getMessages(), hasItem("[ security ] [ query ] [ query-token ] Value of [ i_am_text ] does not meet API requirements."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(4)
+                .contains(
+                        "[ security ] [ header ] [ basic ] Only one value allowed for security parameters but multiple found.",
+                        "[ security ] [ header ] [ basic ] Value of [ wrong ] does not meet API requirements.",
+                        "[ security ] [ query ] [ query-token ] Only one value allowed for security parameters but multiple found.",
+                        "[ security ] [ query ] [ query-token ] Value of [ i_am_text ] does not meet API requirements."
+                );
     }
 
     private Map<String, SecurityScheme> getSecurity() {

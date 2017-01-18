@@ -3,6 +3,7 @@ package net.ozwolf.mockserver.raml;
 import net.ozwolf.mockserver.raml.specification.ClassPathSpecification;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.json.JSONException;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,6 +11,7 @@ import org.mockserver.client.server.MockServerClient;
 import org.mockserver.junit.MockServerRule;
 import org.mockserver.model.Header;
 import org.mockserver.model.Parameter;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -19,8 +21,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.fixture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockserver.model.HttpRequest.request;
@@ -58,12 +59,12 @@ public class RamlSpecificationRuleIntegrationTest {
                 .request()
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
                 .get(String.class);
-        assertThat(response, is("Hello John!"));
+        assertThat(response).isEqualTo("Hello John!");
 
         RamlSpecification.Result result = SPECIFICATIONS.get("my-service").obeyedBy(mockClient);
 
         assertFalse(result.isValid());
-        assertThat(result.getFormattedErrorMessage(), is(fixture("fixtures/expected-obey-errors-get-hello-john.txt")));
+        assertThat(result.getFormattedErrorMessage()).isEqualTo(fixture("fixtures/expected-obey-errors-get-hello-john.txt"));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class RamlSpecificationRuleIntegrationTest {
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
                 .get();
         try {
-            assertThat(response.getStatus(), is(503));
+            assertThat(response.getStatus()).isEqualTo(503);
         } finally {
             response.close();
         }
@@ -126,7 +127,7 @@ public class RamlSpecificationRuleIntegrationTest {
                 .request()
                 .header(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN)
                 .get(String.class);
-        assertThat(response, is("Hello John!"));
+        assertThat(response).isEqualTo("Hello John!");
 
         RamlSpecification.Result result = SPECIFICATIONS.get("my-service").obeyedBy(mockClient);
 
@@ -134,7 +135,7 @@ public class RamlSpecificationRuleIntegrationTest {
     }
 
     @Test
-    public void shouldRaiseErrorsWhenJsonBodiesAreIncorrect() throws IOException {
+    public void shouldRaiseErrorsWhenJsonBodiesAreIncorrect() throws IOException, JSONException {
         MockServerClient mockClient = new MockServerClient("localhost", 5000);
         mockClient.when(
                 request()
@@ -162,10 +163,10 @@ public class RamlSpecificationRuleIntegrationTest {
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Basic TOKEN1234")
                 .put(Entity.entity(fixture("fixtures/incorrect-greeting-request.json"), "application/json"), String.class);
-        assertThat(response, is(fixture("fixtures/incorrect-greetings-response.json")));
+        JSONAssert.assertEquals(fixture("fixtures/incorrect-greetings-response.json"), response, false);
 
         RamlSpecification.Result result = SPECIFICATIONS.get("my-service").obeyedBy(mockClient);
         assertFalse(result.isValid());
-        assertThat(result.getFormattedErrorMessage(), is(fixture("fixtures/expected-obey-errors-put-greeting.txt")));
+        assertThat(result.getFormattedErrorMessage()).isEqualTo(fixture("fixtures/expected-obey-errors-put-greeting.txt"));
     }
 }

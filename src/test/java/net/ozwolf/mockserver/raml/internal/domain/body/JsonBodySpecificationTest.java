@@ -7,9 +7,7 @@ import org.raml.model.MimeType;
 import java.io.IOException;
 
 import static net.ozwolf.mockserver.raml.util.Fixtures.fixture;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,7 +22,7 @@ public class JsonBodySpecificationTest {
 
         ValidationErrors errors = new JsonBodySpecification("Response Body", mimeType).validate(response);
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
@@ -37,8 +35,9 @@ public class JsonBodySpecificationTest {
 
         ValidationErrors errors = new JsonBodySpecification("request", mimeType).validate(request);
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ body ] object has missing required properties ([\"greeting\"])"));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] [ body ] object has missing required properties ([\"greeting\"])");
     }
 }

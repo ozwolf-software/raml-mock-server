@@ -8,18 +8,17 @@ import org.junit.Test;
 
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class ExpectationValidatorTest {
     private final ApiExpectation expectation = mock(ApiExpectation.class);
     private final Validator validator = mock(Validator.class);
 
     @Before
-    public void setUp(){
+    public void setUp() {
         when(expectation.getUri()).thenReturn("/hello/world");
         when(expectation.getMethod()).thenReturn("GET");
     }
@@ -30,11 +29,11 @@ public class ExpectationValidatorTest {
 
         ExpectationValidator expectationValidator = new ExpectationValidator(expectation, validator);
 
-        assertThat(expectationValidator.validate().isPresent(), is(false));
+        assertThat(expectationValidator.validate().isPresent()).isFalse();
     }
 
     @Test
-    public void shouldReturnExpectationErrorWhenValidatorReturnsErrors(){
+    public void shouldReturnExpectationErrorWhenValidatorReturnsErrors() {
         ValidationErrors errors = new ValidationErrors();
         errors.addMessage("This is an error!");
 
@@ -42,8 +41,9 @@ public class ExpectationValidatorTest {
 
         Optional<ExpectationError> error = new ExpectationValidator(expectation, validator).validate();
 
-        assertThat(error.isPresent(), is(true));
-        assertThat(error.get().getMessages().size(), is(1));
-        assertThat(error.get().getMessages(), hasItem("This is an error!"));
+        assertThat(error.isPresent()).isTrue();
+        assertThat(error.get().getMessages())
+                .hasSize(1)
+                .contains("This is an error!");
     }
 }

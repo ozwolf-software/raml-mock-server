@@ -6,16 +6,12 @@ import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockserver.model.Header;
-import org.raml.model.ParamType;
 import org.raml.model.Response;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static net.ozwolf.mockserver.raml.util.HeaderFactory.header;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,29 +39,30 @@ public class ResponseHeaderParametersValidatorTest {
 
         ValidationErrors errors = new ResponseHeaderParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
     public void shouldReturnZeroErrorsWhenHeaderIsOptionalAndNoValueProvided() {
-        when(expectation.getResponseHeader("ttl")).thenReturn(Optional.<Header>empty());
+        when(expectation.getResponseHeader("ttl")).thenReturn(Optional.empty());
         when(response.getHeaders()).thenReturn(header(false, false));
 
         ValidationErrors errors = new ResponseHeaderParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
     public void shouldIncludeErrorWhenParameterIsRequiredButNotProvided() {
-        when(expectation.getResponseHeader("ttl")).thenReturn(Optional.<Header>empty());
+        when(expectation.getResponseHeader("ttl")).thenReturn(Optional.empty());
         when(response.getHeaders()).thenReturn(header(true, false));
 
         ValidationErrors errors = new ResponseHeaderParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ header ] [ ttl ] Parameter is compulsory but no value(s) provided."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ header ] [ ttl ] Parameter is compulsory but no value(s) provided.");
     }
 
     @Test
@@ -76,9 +73,10 @@ public class ResponseHeaderParametersValidatorTest {
 
         ValidationErrors errors = new ResponseHeaderParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ header ] [ ttl ] Only one value allowed but multiple values provided."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ header ] [ ttl ] Only one value allowed but multiple values provided.");
     }
 
     @Test
@@ -90,18 +88,9 @@ public class ResponseHeaderParametersValidatorTest {
 
         ValidationErrors errors = new ResponseHeaderParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ header ] [ ttl ] Value of [ i_am_text ] does not meet API requirements."));
-    }
-
-    private Map<String, org.raml.model.parameter.Header> header(boolean required, boolean repeatable) {
-        org.raml.model.parameter.Header header = new org.raml.model.parameter.Header();
-        header.setRequired(required);
-        header.setRepeat(repeatable);
-        header.setType(ParamType.INTEGER);
-        Map<String, org.raml.model.parameter.Header> headers = new HashMap<>();
-        headers.put("ttl", header);
-        return headers;
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ header ] [ ttl ] Value of [ i_am_text ] does not meet API requirements.");
     }
 }

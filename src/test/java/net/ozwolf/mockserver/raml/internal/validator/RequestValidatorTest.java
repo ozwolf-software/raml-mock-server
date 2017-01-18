@@ -2,15 +2,13 @@ package net.ozwolf.mockserver.raml.internal.validator;
 
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static net.ozwolf.mockserver.raml.util.ValidatorFactory.validator;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,9 +21,10 @@ public class RequestValidatorTest {
 
         ValidationErrors errors = new RequestValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] No resource matching for request found."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] No resource matching for request found.");
     }
 
     @Test
@@ -35,9 +34,10 @@ public class RequestValidatorTest {
 
         ValidationErrors errors = new RequestValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] Resource for does not support method."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] Resource for does not support method.");
     }
 
     @Test
@@ -51,26 +51,17 @@ public class RequestValidatorTest {
 
         ValidationErrors errors = new MyTestValidator(expectation, validator1, validator2, validator3).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(2));
-        assertThat(errors.getMessages(), hasItem("This is an error!"));
-        assertThat(errors.getMessages(), hasItem("And this is another error!"));
-    }
-
-    private Validator validator(String errorMessage) {
-        Validator validator = mock(Validator.class);
-        ValidationErrors errors = new ValidationErrors();
-        if (StringUtils.isNotBlank(errorMessage))
-            errors.addMessage(errorMessage);
-
-        when(validator.validate()).thenReturn(errors);
-        return validator;
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(2)
+                .contains("This is an error!")
+                .contains("And this is another error!");
     }
 
     private static class MyTestValidator extends RequestValidator {
         private final List<Validator> validators;
 
-        public MyTestValidator(ApiExpectation expectation, Validator... validators) {
+        MyTestValidator(ApiExpectation expectation, Validator... validators) {
             super(expectation);
             this.validators = newArrayList(validators);
         }

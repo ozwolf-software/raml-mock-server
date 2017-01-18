@@ -12,7 +12,6 @@ import org.mockserver.mock.Expectation;
 import org.mockserver.model.Header;
 import org.mockserver.model.NottableString;
 import org.mockserver.model.Parameter;
-import org.raml.model.Action;
 import org.raml.model.Resource;
 import org.raml.model.SecurityScheme;
 import org.raml.parser.visitor.RamlDocumentBuilder;
@@ -23,9 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockserver.matchers.Times.once;
@@ -77,74 +75,76 @@ public class ApiExpectationTest {
 
     @Test
     public void shouldReturnResponseMatchingExpectationStatusCode() {
-
-        assertThat(GET_EXPECTATION.getResponse().isPresent(), is(true));
+        assertThat(GET_EXPECTATION.getResponse().isPresent()).isTrue();
     }
 
     @Test
     public void shouldReturnMatchingRequestHeader() {
-        assertThat(GET_EXPECTATION.getRequestHeader("wrong").isPresent(), is(false));
-        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).isPresent(), is(true));
-        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues(), hasItem(NottableString.string(MediaType.APPLICATION_JSON)));
+        assertThat(GET_EXPECTATION.getRequestHeader("wrong").isPresent()).isFalse();
+        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).isPresent()).isTrue();
+        assertThat(GET_EXPECTATION.getRequestHeader(HttpHeaders.ACCEPT).get().getValues())
+                .hasSize(1)
+                .contains(NottableString.string(MediaType.APPLICATION_JSON));
     }
 
     @Test
     public void shouldReturnMatchingResponseHeader() {
-        assertThat(GET_EXPECTATION.getResponseHeader("wrong").isPresent(), is(false));
-        assertThat(GET_EXPECTATION.getResponseHeader("ttl").isPresent(), is(true));
-        assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues(), hasItem(NottableString.string("30s")));
+        assertThat(GET_EXPECTATION.getResponseHeader("wrong").isPresent()).isFalse();
+        assertThat(GET_EXPECTATION.getResponseHeader("ttl").isPresent()).isTrue();
+        assertThat(GET_EXPECTATION.getResponseHeader("ttl").get().getValues())
+                .hasSize(1)
+                .contains(NottableString.string("30s"));
     }
 
     @Test
     public void shouldReturnMatchingQueryParameter() {
-        assertThat(GET_EXPECTATION.getQueryParameter("wrong").isPresent(), is(false));
-        assertThat(GET_EXPECTATION.getQueryParameter("ttl").isPresent(), is(true));
-        assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues().size(), is(1));
-        assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues(), hasItem(NottableString.string("30s")));
+        assertThat(GET_EXPECTATION.getQueryParameter("wrong").isPresent()).isFalse();
+        assertThat(GET_EXPECTATION.getQueryParameter("ttl").isPresent()).isTrue();
+        assertThat(GET_EXPECTATION.getQueryParameter("ttl").get().getValues())
+                .hasSize(1)
+                .contains(NottableString.string("30s"));
     }
 
     @Test
     public void shouldReturnUriParameterValue() {
-        assertThat(GET_EXPECTATION.getUriValueOf("name"), is("John"));
+        assertThat(GET_EXPECTATION.getUriValueOf("name")).isEqualTo("John");
     }
 
     @Test
     public void shouldReturnRequestContentType() {
-        assertThat(GET_EXPECTATION.getRequestContentType(), is(MediaType.APPLICATION_JSON_TYPE));
+        assertThat(GET_EXPECTATION.getRequestContentType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
     }
 
     @Test
     public void shouldReturnResponseContentType() {
-        assertThat(GET_EXPECTATION.getResponseContentType(), is(MediaType.APPLICATION_JSON_TYPE));
+        assertThat(GET_EXPECTATION.getResponseContentType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
     }
 
     @Test
     public void shouldReturnValidResponseBodySpecification() {
-        assertThat(GET_EXPECTATION.getResponseBodySpecification().isPresent(), is(true));
-        assertThat(GET_EXPECTATION.getResponseBodySpecification().get(), instanceOf(JsonBodySpecification.class));
+        assertThat(GET_EXPECTATION.getResponseBodySpecification().isPresent()).isTrue();
+        assertThat(GET_EXPECTATION.getResponseBodySpecification().get()).isInstanceOf(JsonBodySpecification.class);
     }
 
     @Test
     public void shouldReturnValidRequestBodySpecification() {
-        assertThat(PUT_EXPECTATION.getRequestBodySpecification().isPresent(), is(true));
-        assertThat(PUT_EXPECTATION.getRequestBodySpecification().get(), instanceOf(DefaultBodySpecification.class));
+        assertThat(PUT_EXPECTATION.getRequestBodySpecification().isPresent()).isTrue();
+        assertThat(PUT_EXPECTATION.getRequestBodySpecification().get()).isInstanceOf(DefaultBodySpecification.class);
     }
 
     @Test
     public void shouldReturnSecuritySpecifications() {
         Map<String, SecurityScheme> schemes = GET_EXPECTATION.getSecuritySpecification();
 
-        assertThat(schemes.size(), is(2));
-        assertThat(schemes.containsKey("basic"), is(true));
-        assertThat(schemes.containsKey("my-token"), is(true));
+        assertThat(schemes.size()).isEqualTo(2);
+        assertThat(schemes.containsKey("basic")).isTrue();
+        assertThat(schemes.containsKey("my-token")).isTrue();
     }
 
     @Test(expected = NoValidResourceException.class)
     public void shouldThrowNoValidResourceExceptionWhenAttemptingToGetUriValueButNoMatchingResource() {
         ApiSpecification specification = mock(ApiSpecification.class);
-        when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.<Resource>empty());
+        when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.empty());
 
         new ApiExpectation(specification, MOCK_GET_EXPECTATION).getUriValueOf("name");
     }
@@ -152,7 +152,7 @@ public class ApiExpectationTest {
     @Test(expected = NoValidResourceException.class)
     public void shouldThrowNoValidResourceExceptionWhenAttemptingToGetSecuritySpecification() {
         ApiSpecification specification = mock(ApiSpecification.class);
-        when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.<Resource>empty());
+        when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.empty());
 
         new ApiExpectation(specification, MOCK_GET_EXPECTATION).getSecuritySpecification();
     }
@@ -164,7 +164,7 @@ public class ApiExpectationTest {
 
         ApiSpecification specification = mock(ApiSpecification.class);
         when(specification.getResourceFor(any(ApiExpectation.class))).thenReturn(Optional.of(resource));
-        when(specification.getActionFor(any(ApiExpectation.class))).thenReturn(Optional.<Action>empty());
+        when(specification.getActionFor(any(ApiExpectation.class))).thenReturn(Optional.empty());
 
         new ApiExpectation(specification, MOCK_GET_EXPECTATION).getSecuritySpecification();
     }

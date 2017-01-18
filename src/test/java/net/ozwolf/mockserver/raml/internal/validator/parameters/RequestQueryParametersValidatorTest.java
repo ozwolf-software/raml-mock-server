@@ -14,9 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,29 +41,30 @@ public class RequestQueryParametersValidatorTest {
 
         ValidationErrors errors = new RequestQueryParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
     public void shouldReturnZeroErrorsWhenQueryParameterIsOptionalAndNoValueProvided() {
-        when(expectation.getQueryParameter("ttl")).thenReturn(Optional.<Parameter>empty());
+        when(expectation.getQueryParameter("ttl")).thenReturn(Optional.empty());
         when(action.getQueryParameters()).thenReturn(queryParameter(false, false));
 
         ValidationErrors errors = new RequestQueryParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(false));
+        assertThat(errors.isInError()).isFalse();
     }
 
     @Test
     public void shouldIncludeErrorWhenParameterIsRequiredButNotProvided() {
-        when(expectation.getQueryParameter("ttl")).thenReturn(Optional.<Parameter>empty());
+        when(expectation.getQueryParameter("ttl")).thenReturn(Optional.empty());
         when(action.getQueryParameters()).thenReturn(queryParameter(true, false));
 
         ValidationErrors errors = new RequestQueryParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ query ] [ ttl ] Parameter is compulsory but no value(s) provided."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] [ query ] [ ttl ] Parameter is compulsory but no value(s) provided.");
     }
 
     @Test
@@ -76,9 +75,10 @@ public class RequestQueryParametersValidatorTest {
 
         ValidationErrors errors = new RequestQueryParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ query ] [ ttl ] Only one value allowed but multiple values provided."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] [ query ] [ ttl ] Only one value allowed but multiple values provided.");
     }
 
     @Test
@@ -90,9 +90,10 @@ public class RequestQueryParametersValidatorTest {
 
         ValidationErrors errors = new RequestQueryParametersValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ request ] [ query ] [ ttl ] Value of [ i_am_text ] does not meet API requirements."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ request ] [ query ] [ ttl ] Value of [ i_am_text ] does not meet API requirements.");
     }
 
     private Map<String, QueryParameter> queryParameter(boolean required, boolean repeatable) {

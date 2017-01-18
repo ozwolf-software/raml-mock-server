@@ -2,7 +2,6 @@ package net.ozwolf.mockserver.raml.internal.validator.body;
 
 import net.ozwolf.mockserver.raml.exception.NoValidActionException;
 import net.ozwolf.mockserver.raml.internal.domain.ApiExpectation;
-import net.ozwolf.mockserver.raml.internal.domain.BodySpecification;
 import net.ozwolf.mockserver.raml.internal.domain.ValidationErrors;
 import net.ozwolf.mockserver.raml.internal.domain.body.DefaultBodySpecification;
 import org.junit.Before;
@@ -15,9 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,37 +44,40 @@ public class ResponseBodyValidatorTest {
 
     @Test
     public void shouldRaiseErrorIfNoResponseFoundForExpectation() {
-        when(expectation.getResponse()).thenReturn(Optional.<Response>empty());
+        when(expectation.getResponse()).thenReturn(Optional.empty());
 
         ValidationErrors errors = new ResponseBodyValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ 200 ] [ application/json ] No response body specification exists."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ 200 ] [ application/json ] No response body specification exists.");
     }
 
     @Test
     public void shouldThrowErrorIfNoBodySpecificationFoundForResponseCodeAndContentType() {
-        when(expectation.getResponseBodySpecification()).thenReturn(Optional.<BodySpecification>empty());
+        when(expectation.getResponseBodySpecification()).thenReturn(Optional.empty());
         when(expectation.getResponseBody()).thenReturn(Optional.of("{\"greeting\":\"Hello John!\"}"));
 
         ValidationErrors errors = new ResponseBodyValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ 200 ] [ application/json ] No response body specification exists for this content type.  Acceptable content types are [ application/json, text/plain ]."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ 200 ] [ application/json ] No response body specification exists for this content type.  Acceptable content types are [ application/json, text/plain ].");
     }
 
     @Test
     public void shouldReturnErrorIfNoResponseBodyIsProvided() {
         when(expectation.getResponseBodySpecification()).thenReturn(Optional.of(new DefaultBodySpecification(MediaType.APPLICATION_JSON_TYPE)));
-        when(expectation.getResponseBody()).thenReturn(Optional.<String>empty());
+        when(expectation.getResponseBody()).thenReturn(Optional.empty());
 
         ValidationErrors errors = new ResponseBodyValidator(expectation).validate();
 
-        assertThat(errors.isInError(), is(true));
-        assertThat(errors.getMessages().size(), is(1));
-        assertThat(errors.getMessages(), hasItem("[ response ] [ 200 ] [ application/json ] Has an expected response body but none returned."));
+        assertThat(errors.isInError()).isTrue();
+        assertThat(errors.getMessages())
+                .hasSize(1)
+                .contains("[ response ] [ 200 ] [ application/json ] Has an expected response body but none returned.");
     }
 
     private Map<String, MimeType> getContentTypes() {
