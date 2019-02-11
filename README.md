@@ -1,6 +1,6 @@
 # RAML Mock Server
 
-[![Status](https://img.shields.io/badge/status-EOL-red.svg)](https://img.shields.io/badge/status-EOL-red.svg)
+[![Status](https://img.shields.io/badge/status-EOL-red.svg?style=flat-square)](https://img.shields.io/badge/status-EOL-red.svg)
 [![Travis](https://img.shields.io/travis/ozwolf-software/raml-mock-server.svg?style=flat-square)](https://travis-ci.org/ozwolf-software/raml-mock-server)
 [![Maven Central](https://img.shields.io/maven-central/v/net.ozwolf/raml-mock-server.svg?style=flat-square)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22net.ozwolf%22%20AND%20a%3A%22raml-mock-server%22)
 [![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
