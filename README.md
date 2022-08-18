@@ -5,6 +5,10 @@
 [![Maven Central](https://img.shields.io/maven-central/v/net.ozwolf/raml-mock-server.svg?style=flat-square)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22net.ozwolf%22%20AND%20a%3A%22raml-mock-server%22)
 [![Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
+## EOL Notice
+
+This library is considered EOL and is not under support anymore.
+
 ## Description
 
 This tool is designed to allow validation of RAML API specifications against your own descriptors in a MockServer setup.
